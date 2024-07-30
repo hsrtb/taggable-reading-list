@@ -7,7 +7,7 @@
         "default_icon": "icons/save.svg",
         "default_title": "Save Tabs"
     },
-    "permissions": ["tabs"],
+    "permissions": ["tabs", "storage", "unlimitedStorage"],
 
     "background": {
         "scripts": ["background.js"]
