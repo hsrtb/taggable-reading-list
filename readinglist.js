@@ -1,1 +1,28 @@
-window.addEventListener('load',async function(){document.getElementById("container").innerHTML = await get_plaintext_tablist();});
+window.addEventListener('load',async function(){
+    let table = document.createElement('table');
+    let saves_array = (await storageapi.get({saves: []})).saves;
+    for (const save of saves_array) {
+        let tr = document.createElement('tr');
+        let date_td = document.createElement('td');
+        let title_td = document.createElement('td');
+        let link_td = document.createElement('td');
+
+        date_td.innerText = new Date(save.date).toISOString();
+        let title_link = document.createElement('a');
+        title_link.setAttribute('href',save.url);
+        title_link.innerText = save.title;
+        title_td.appendChild(title_link);
+        let link_link = document.createElement('a');
+        link_link.setAttribute('href',save.url);
+        link_link.innerText = save.url;
+        link_td.appendChild(link_link);
+
+        tr.appendChild(date_td);
+        tr.appendChild(title_td);
+        tr.appendChild(link_td);
+        table.appendChild(tr);
+    }
+
+    document.body.appendChild(table);
+    document.body.removeChild(document.getElementById('loading-marker'));
+});
