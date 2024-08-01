@@ -1,4 +1,3 @@
-const storageapi = browser.storage.local;
 async function save_tabs() {
     let tab_array = await browser.tabs.query({currentWindow:true});
     let saves_array = (await storageapi.get({saves: []})).saves;
@@ -10,11 +9,6 @@ async function save_tabs() {
     }
     await storageapi.set({saves:saves_array});
     browser.tabs.remove(ids);
+    browser.windows.create({url: "readinglist.html"});
 }
 browser.action.onClicked.addListener(save_tabs);
-async function show_tabs() {
-    let saves_array = (await storageapi.get({saves: []})).saves;
-    for (const save of saves_array) {
-        console.log(new Date(save.date).toISOString() + " || " + save.title + " || " + save.url);
-    }
-}
