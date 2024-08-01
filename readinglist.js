@@ -1,6 +1,8 @@
 window.addEventListener('load',async function(){
+    let start = new Date().valueOf();
     let table = document.createElement('table');
     let saves_array = (await storageapi.get({saves: []})).saves;
+    document.getElementById('tabcount').innerText = saves_array.length;
     for (const save of saves_array) {
         let tr = document.createElement('tr');
         let date_td = document.createElement('td');
@@ -25,4 +27,5 @@ window.addEventListener('load',async function(){
 
     document.body.appendChild(table);
     document.body.removeChild(document.getElementById('loading-marker'));
+    console.log("render took " + (new Date().valueOf() - start) + " ms");
 });
