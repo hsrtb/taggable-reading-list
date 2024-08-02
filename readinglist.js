@@ -1,4 +1,18 @@
 window.addEventListener('load',async function(){
+    // ensure only one instance of this page is ever loaded
+    let readinglist_pages = await browser.tabs.query({url: window.location.href});
+    if (readinglist_pages.length != 1) {
+        if (readinglist_pages.length != 2) {
+            document.body.innerHTML = '<p style=\'color:red; font-size: 3em;\'>Hit unreachable state: more than 2 reading list pages open</p>';
+            return;
+        }
+        let first_page = readinglist_pages.shift();
+        await browser.tabs.highlight({tabs: [first_page.index], windowId: first_page.windowId});
+        await browser.windows.update(first_page.windowId, {focused: true});
+        // no need to reload that tab because this one cannot have modified the database yet
+        await browser.tabs.remove((await browser.tabs.getCurrent()).id);
+    }
+
     let start = new Date().valueOf();
     let table = document.createElement('table');
     document.body.appendChild(table);
