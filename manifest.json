@@ -11,5 +11,13 @@
 
     "background": {
         "scripts": ["common.js", "background.js"]
+    },
+    "commands": {
+        "show-list": {
+            "suggested_key": {
+                "default": "Alt+Shift+2"
+            },
+            "description": "show reading list"
+        }
     }
 }
