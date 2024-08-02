@@ -1,4 +1,5 @@
 const readinglist_page_url = browser.runtime.getURL("readinglist.html");
+
 async function show_list(reload) {
     let readinglist_page = (await browser.tabs.query({url: readinglist_page_url}))[0];
     if (readinglist_page) {
@@ -14,6 +15,10 @@ async function save_tabs() {
     let ids = [];
     for (const tab of tab_array) {
         if (tab.url == readinglist_page_url) continue;
+        if (tab.url == 'chrome://browser/content/blanktab.html' || tab.url == 'about:newtab') {
+            ids.push(tab.id); // still want to close a blank tab, just not add it to the list
+            continue;
+        }
         console.log(tab.title + " - " + tab.url);
         new_saves_array.push({url: tab.url, title: tab.title, date: 1000 * Math.round(new Date().valueOf() / 1000)});
         ids.push(tab.id);
