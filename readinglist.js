@@ -1,3 +1,26 @@
+async function on_tablink_click(e) {
+    let start = new Date().valueOf();
+    e.preventDefault();
+    let taburl = e.target.href;
+    let tr = e.target.parentElement.parentElement;
+    let next_tr = tr.nextElementSibling;
+    let index = parseInt(tr.firstChild.innerText) - 1;
+    console.log(taburl);
+    let saves_array = (await storageapi.get({saves: []})).saves;
+    saves_array.splice(index,1);
+    storageapi.set({saves: saves_array});
+    tr.parentElement.removeChild(tr);
+    browser.tabs.create({url: taburl});
+    document.getElementById('tabcount').innerText = saves_array.length;
+    let start_loop = new Date().valueOf();
+    while (next_tr) {
+        let idx = parseInt(next_tr.firstChild.innerText);
+        next_tr.firstChild.innerText = idx - 1;
+        next_tr = next_tr.nextElementSibling;
+    }
+    let end = new Date().valueOf();
+    console.log('total: ' + (end - start) + " ms\nloop: " + (end - start_loop) + " ms");
+}
 window.addEventListener('load',async function(){
     // ensure only one instance of this page is ever loaded
     let readinglist_pages = await browser.tabs.query({url: window.location.href});
@@ -32,10 +55,12 @@ window.addEventListener('load',async function(){
         let title_link = document.createElement('a');
         title_link.setAttribute('href',save.url);
         title_link.innerText = save.title;
+        title_link.addEventListener('click',on_tablink_click);
         title_td.appendChild(title_link);
         let link_link = document.createElement('a');
         link_link.setAttribute('href',save.url);
         link_link.innerText = save.url;
+        link_link.addEventListener('click',on_tablink_click);
         link_td.appendChild(link_link);
 
         tr.appendChild(number_td);
