@@ -10,7 +10,8 @@ async function on_tablink_click(e) {
     saves_array.splice(index,1);
     storageapi.set({saves: saves_array});
     tr.parentElement.removeChild(tr);
-    browser.tabs.create({url: taburl});
+    if (e.shiftKey) browser.windows.create({url: taburl});
+    else browser.tabs.create({url: taburl});
     document.getElementById('tabcount').innerText = saves_array.length;
     let start_loop = new Date().valueOf();
     while (next_tr) {
