@@ -47,12 +47,16 @@ window.addEventListener('load',async function(){
         let tr = document.createElement('tr');
         let number_td = document.createElement('td');
         let date_td = document.createElement('td');
+        let favicon_td = document.createElement('td');
         let title_td = document.createElement('td');
         let link_td = document.createElement('td');
 
         number_td.innerText = i + 1;
         number_td.setAttribute('class', 'entrynumber');
         date_td.innerText = new Date(save.date).toISOString();
+        let favicon = document.createElement('img');
+        favicon.src = 'https://www.google.com/s2/favicons?sz=16&domain=' + new URL(save.url).hostname;
+        favicon_td.appendChild(favicon);
         let title_link = document.createElement('a');
         title_link.setAttribute('href',save.url);
         title_link.innerText = save.title;
@@ -66,6 +70,7 @@ window.addEventListener('load',async function(){
 
         tr.appendChild(number_td);
         tr.appendChild(date_td);
+        tr.appendChild(favicon_td);
         tr.appendChild(title_td);
         tr.appendChild(link_td);
         table.appendChild(tr);
