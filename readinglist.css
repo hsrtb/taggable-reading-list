@@ -14,6 +14,9 @@ body {
 td {
     padding-right: 1em;
 }
+tr:hover > .deletebutton > svg {
+    visibility: visible;
+}
 a {
     text-decoration: none;
     color: var(--link-color);
@@ -24,4 +27,13 @@ a {
 .entrynumber {
     font-weight: bold;
     color: #bbb;
+}
+.deletebutton {
+    padding-right: 0.4em;
+}
+.deletebutton > svg {
+    visibility: hidden;
+}
+.deletebutton:hover {
+    cursor: pointer;
 }

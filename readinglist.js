@@ -1,26 +1,31 @@
 async function on_tablink_click(e) {
-    let start = new Date().valueOf();
     e.preventDefault();
     let taburl = e.target.href;
     let tr = e.target.parentElement.parentElement;
-    let next_tr = tr.nextElementSibling;
-    let index = parseInt(tr.firstChild.innerText) - 1;
-    console.log(taburl);
-    let saves_array = (await storageapi.get({saves: []})).saves;
-    saves_array.splice(index,1);
-    storageapi.set({saves: saves_array});
-    tr.parentElement.removeChild(tr);
     if (e.shiftKey) browser.windows.create({url: taburl});
     else browser.tabs.create({url: taburl});
+    await delete_entry(tr);
+}
+async function on_delete_click(e) {
+    let tr = e.currentTarget.parentElement;
+    await delete_entry(tr);
+}
+async function delete_entry(tr) {
+    let start = new Date().valueOf();
+    let next_tr = tr.nextElementSibling;
+    let index = parseInt(tr.firstChild.nextElementSibling.innerText) - 1;
+    let saves_array = (await storageapi.get({saves: []})).saves;
+    console.log(saves_array.splice(index,1)[0].url);
+    storageapi.set({saves: saves_array});
+    tr.parentElement.removeChild(tr);
     document.getElementById('tabcount').innerText = saves_array.length;
-    let start_loop = new Date().valueOf();
     while (next_tr) {
-        let idx = parseInt(next_tr.firstChild.innerText);
-        next_tr.firstChild.innerText = idx - 1;
+        let idx = parseInt(next_tr.firstChild.nextElementSibling.innerText);
+        next_tr.firstChild.nextElementSibling.innerText = idx - 1;
         next_tr = next_tr.nextElementSibling;
     }
     let end = new Date().valueOf();
-    console.log('total: ' + (end - start) + " ms\nloop: " + (end - start_loop) + " ms");
+    console.log('delete took ' + (end - start) + " ms");
 }
 window.addEventListener('load',async function(){
     // ensure only one instance of this page is ever loaded
@@ -45,12 +50,20 @@ window.addEventListener('load',async function(){
     for (let i = 0; i < saves_array.length; ++i) {
         const save = saves_array[i];
         let tr = document.createElement('tr');
+        let delete_td = document.createElement('td');
         let number_td = document.createElement('td');
         let date_td = document.createElement('td');
         let favicon_td = document.createElement('td');
         let title_td = document.createElement('td');
         let link_td = document.createElement('td');
 
+        delete_td.setAttribute('class','deletebutton');
+        delete_td.innerHTML = "<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg' width='10' height='10'>\n" +
+                              "<defs><style>.b {stroke: #bbb; stroke-linecap: round; stroke-width: 18px}</style></defs>\n" +
+                              "<line class='b' x1='9' y1='9' x2='91' y2='91'/>\n" +
+                              "<line class='b' x1='9' y1='91' x2='91' y2='9'/>\n" +
+                              "</svg>";
+        delete_td.addEventListener('click',on_delete_click);
         number_td.innerText = i + 1;
         number_td.setAttribute('class', 'entrynumber');
         date_td.innerText = new Date(save.date).toISOString();
@@ -68,6 +81,7 @@ window.addEventListener('load',async function(){
         link_link.addEventListener('click',on_tablink_click);
         link_td.appendChild(link_link);
 
+        tr.appendChild(delete_td);
         tr.appendChild(number_td);
         tr.appendChild(date_td);
         tr.appendChild(favicon_td);
