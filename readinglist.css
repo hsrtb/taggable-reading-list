@@ -21,3 +21,7 @@ a {
 #header {
     font-size: calc(2 * var(--base-font-size));
 }
+.entrynumber {
+    font-weight: bold;
+    color: #bbb;
+}

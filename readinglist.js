@@ -18,12 +18,16 @@ window.addEventListener('load',async function(){
     document.body.appendChild(table);
     let saves_array = (await storageapi.get({saves: []})).saves;
     document.getElementById('tabcount').innerText = saves_array.length;
-    for (const save of saves_array) {
+    for (let i = 0; i < saves_array.length; ++i) {
+        const save = saves_array[i];
         let tr = document.createElement('tr');
+        let number_td = document.createElement('td');
         let date_td = document.createElement('td');
         let title_td = document.createElement('td');
         let link_td = document.createElement('td');
 
+        number_td.innerText = i + 1;
+        number_td.setAttribute('class', 'entrynumber');
         date_td.innerText = new Date(save.date).toISOString();
         let title_link = document.createElement('a');
         title_link.setAttribute('href',save.url);
@@ -34,6 +38,7 @@ window.addEventListener('load',async function(){
         link_link.innerText = save.url;
         link_td.appendChild(link_link);
 
+        tr.appendChild(number_td);
         tr.appendChild(date_td);
         tr.appendChild(title_td);
         tr.appendChild(link_td);
