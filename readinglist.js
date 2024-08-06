@@ -13,6 +13,7 @@ async function on_delete_click(e) {
 async function delete_entry(tr) {
     let start = new Date().valueOf();
     let next_tr = tr.nextElementSibling;
+    if (tr.getAttribute('class') == 'firstinblock' && next_tr) next_tr.setAttribute('class', 'firstinblock');
     let index = parseInt(tr.firstChild.nextElementSibling.innerText) - 1;
     let saves_array = (await storageapi.get({saves: []})).saves;
     console.log(saves_array.splice(index,1)[0].url);
@@ -47,6 +48,7 @@ window.addEventListener('load',async function(){
     document.body.appendChild(table);
     let saves_array = (await storageapi.get({saves: []})).saves;
     document.getElementById('tabcount').innerText = saves_array.length;
+    let last_date = null;
     for (let i = 0; i < saves_array.length; ++i) {
         const save = saves_array[i];
         let tr = document.createElement('tr');
@@ -56,6 +58,9 @@ window.addEventListener('load',async function(){
         let favicon_td = document.createElement('td');
         let title_td = document.createElement('td');
         let link_td = document.createElement('td');
+
+        if (i > 0 && save.date != last_date) tr.setAttribute('class', 'firstinblock');
+        last_date = save.date;
 
         delete_td.setAttribute('class','deletebutton');
         delete_td.innerHTML = "<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg' width='10' height='10'>\n" +
