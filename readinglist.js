@@ -68,7 +68,7 @@ async function on_save_tags_click(e) {
     let edit_button = save_button.previousElementSibling;
     let tags_td = edit_button.parentElement.previousElementSibling;
     let input = tags_td.firstElementChild;
-    let tags = input.value.length != 0 ? input.value.split(';') : null;
+    let tags = input.value.length != 0 ? [...new Set(input.value.split(';'))] : null; // set removes duplicates
     tags_td.innerHTML = '';
     if(tags) for (const tag of tags) {
         let pre = document.createElement('pre');
