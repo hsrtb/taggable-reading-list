@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "Customizable Reading List",
+    "name": "Taggable Reading List",
     "version": "0.1",
 
     "action": {

@@ -28,6 +28,20 @@ async function delete_entry(tr) {
     let end = new Date().valueOf();
     console.log('delete took ' + (end - start) + " ms");
 }
+function zero_pad(num) {
+    return num.toString().padStart(2,'0');
+}
+function format_date(date_msecs) {
+    let date = new Date(date_msecs);
+    return `${date.getFullYear()}-${zero_pad(date.getMonth()+1)}-${zero_pad(date.getDate())} ${zero_pad(date.getHours())}${zero_pad(date.getMinutes())}${zero_pad(date.getSeconds())}`;
+}
+function format_date_long(date_msecs) {
+    let date = new Date(date_msecs);
+    let days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    let timestr = date.toTimeString();
+    return `${days[date.getDay()]} ${zero_pad(date.getDate())} ${months[date.getMonth()]} ${date.getFullYear()} ${timestr.slice(0,9)}${timestr.slice(12)}`
+}
 window.addEventListener('load',async function(){
     // ensure only one instance of this page is ever loaded
     let readinglist_pages = await browser.tabs.query({url: window.location.href});
@@ -71,7 +85,7 @@ window.addEventListener('load',async function(){
         delete_td.addEventListener('click',on_delete_click);
         number_td.innerText = i + 1;
         number_td.setAttribute('class', 'entrynumber');
-        date_td.innerText = new Date(save.date).toISOString();
+        date_td.innerHTML = `<span title='${format_date_long(save.date)}'>${format_date(save.date)}</span>`;
         let favicon = document.createElement('img');
         favicon.src = 'https://www.google.com/s2/favicons?sz=16&domain=' + new URL(save.url).hostname;
         favicon_td.appendChild(favicon);
