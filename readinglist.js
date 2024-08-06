@@ -63,6 +63,49 @@ function on_edit_title_click(e) {
     link.style.display = 'none';
     input.focus();
 }
+async function on_save_tags_click(e) {
+    let save_button = e.currentTarget;
+    let edit_button = save_button.previousElementSibling;
+    let tags_td = edit_button.parentElement.previousElementSibling;
+    let input = tags_td.firstElementChild;
+    let tags = input.value.length != 0 ? input.value.split(';') : null;
+    tags_td.innerHTML = '';
+    if(tags) for (const tag of tags) {
+        let pre = document.createElement('pre');
+        pre.innerText = tag;
+        pre.setAttribute('class', 'tag');
+        tags_td.appendChild(pre);
+    }
+    let saves_array = (await storageapi.get({saves: []})).saves;
+    let index = parseInt(tags_td.parentElement.firstElementChild.nextElementSibling.innerText) - 1;
+    saves_array[index].tags = tags;
+    await storageapi.set({saves: saves_array});
+    save_button.parentElement.removeChild(save_button);
+    edit_button.style.display = '';
+}
+async function on_edit_tags_click(e) {
+    let edit_button = e.currentTarget;
+    let tags_td = edit_button.parentElement.previousElementSibling;
+    let index = parseInt(tags_td.parentElement.firstElementChild.nextElementSibling.innerText) - 1;
+    let saves_array = (await storageapi.get({saves: []})).saves;
+    let tags_array = saves_array[index].tags;
+    let tags_string = tags_array ? tags_array.join(';') : '';
+    let input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'semicolon-separated tags';
+    input.value = tags_string;
+    input.addEventListener('input', e => e.target.size = e.target.value.length);
+    input.style.fontFamily = 'monospace';
+    let save_button = document.createElement('button');
+    save_button.innerText = 'save tags';
+    save_button.addEventListener('click', on_save_tags_click);
+    edit_button.parentElement.appendChild(save_button);
+    edit_button.style.display = 'none';
+
+    tags_td.innerHTML = '';
+    tags_td.appendChild(input);
+    input.focus();
+}
 function zero_pad(num) {
     return num.toString().padStart(2,'0');
 }
@@ -107,6 +150,8 @@ window.addEventListener('load',async function(){
         let favicon_td = document.createElement('td');
         let title_td = document.createElement('td');
         let title_edit_button_td = document.createElement('td');
+        let tags_td = document.createElement('td');
+        let tags_edit_button_td = document.createElement('td');
         let link_td = document.createElement('td');
 
         if (i > 0 && save.date != last_date) tr.setAttribute('class', 'firstinblock');
@@ -134,6 +179,16 @@ window.addEventListener('load',async function(){
         title_edit_button.innerText = 'edit title';
         title_edit_button.addEventListener('click', on_edit_title_click);
         title_edit_button_td.appendChild(title_edit_button);
+        if (save.tags) for (const tag of save.tags) {
+            let pre = document.createElement('pre');
+            pre.innerText = tag;
+            pre.setAttribute('class', 'tag');
+            tags_td.appendChild(pre);
+        }
+        let tags_edit_button = document.createElement('button');
+        tags_edit_button.innerText = 'edit tags';
+        tags_edit_button.addEventListener('click', on_edit_tags_click);
+        tags_edit_button_td.appendChild(tags_edit_button);
         let link_link = document.createElement('a');
         link_link.setAttribute('href',save.url);
         link_link.innerText = save.url;
@@ -146,6 +201,8 @@ window.addEventListener('load',async function(){
         tr.appendChild(favicon_td);
         tr.appendChild(title_td);
         tr.appendChild(title_edit_button_td);
+        tr.appendChild(tags_td);
+        tr.appendChild(tags_edit_button_td);
         tr.appendChild(link_td);
         table.appendChild(tr);
     }

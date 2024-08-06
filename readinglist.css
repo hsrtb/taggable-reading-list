@@ -40,3 +40,11 @@ a {
 .deletebutton:hover {
     cursor: pointer;
 }
+.tag {
+    display: inline-block;
+    padding: 0.2em;
+    border: 1px solid blue;
+    background-color: black;
+    margin: 2px;
+    font-size: 0.9em;
+}
