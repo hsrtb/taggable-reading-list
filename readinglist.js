@@ -28,6 +28,41 @@ async function delete_entry(tr) {
     let end = new Date().valueOf();
     console.log('delete took ' + (end - start) + " ms");
 }
+async function on_save_title_click(e) {
+    let save_button = e.currentTarget;
+    let edit_button = save_button.previousElementSibling;
+    let title_td = edit_button.parentElement.previousElementSibling;
+    let link = title_td.firstElementChild;
+    let input = title_td.lastElementChild;
+    let new_title = input.value;
+    link.innerText = new_title;
+    let index = parseInt(title_td.parentElement.firstElementChild.nextElementSibling.innerText) - 1;
+    let saves_array = (await storageapi.get({saves: []})).saves;
+    saves_array[index].title = new_title;
+    await storageapi.set({saves: saves_array});
+    title_td.removeChild(input);
+    link.style.display = '';
+    save_button.parentElement.removeChild(save_button);
+    edit_button.style.display = '';
+}
+function on_edit_title_click(e) {
+    let edit_button = e.currentTarget;
+    let title_td = edit_button.parentElement.previousElementSibling;
+    let link = title_td.firstElementChild;
+    let input = document.createElement('input');
+    let save_button = document.createElement('button');
+    save_button.innerText = 'save title';
+    save_button.addEventListener('click', on_save_title_click);
+    edit_button.parentElement.appendChild(save_button);
+    edit_button.style.display = 'none';
+    input.type = 'text';
+    input.value = link.innerText;
+    input.size = input.value.length;
+    input.addEventListener('input', e => e.target.size = e.target.value.length);
+    title_td.appendChild(input);
+    link.style.display = 'none';
+    input.focus();
+}
 function zero_pad(num) {
     return num.toString().padStart(2,'0');
 }
@@ -71,6 +106,7 @@ window.addEventListener('load',async function(){
         let date_td = document.createElement('td');
         let favicon_td = document.createElement('td');
         let title_td = document.createElement('td');
+        let title_edit_button_td = document.createElement('td');
         let link_td = document.createElement('td');
 
         if (i > 0 && save.date != last_date) tr.setAttribute('class', 'firstinblock');
@@ -94,6 +130,10 @@ window.addEventListener('load',async function(){
         title_link.innerText = save.title;
         title_link.addEventListener('click',on_tablink_click);
         title_td.appendChild(title_link);
+        let title_edit_button = document.createElement('button');
+        title_edit_button.innerText = 'edit title';
+        title_edit_button.addEventListener('click', on_edit_title_click);
+        title_edit_button_td.appendChild(title_edit_button);
         let link_link = document.createElement('a');
         link_link.setAttribute('href',save.url);
         link_link.innerText = save.url;
@@ -105,6 +145,7 @@ window.addEventListener('load',async function(){
         tr.appendChild(date_td);
         tr.appendChild(favicon_td);
         tr.appendChild(title_td);
+        tr.appendChild(title_edit_button_td);
         tr.appendChild(link_td);
         table.appendChild(tr);
     }
