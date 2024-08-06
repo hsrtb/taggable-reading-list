@@ -14,15 +14,16 @@ async function delete_entry(tr) {
     let start = new Date().valueOf();
     let next_tr = tr.nextElementSibling;
     if (tr.getAttribute('class') == 'firstinblock' && next_tr) next_tr.setAttribute('class', 'firstinblock');
-    let index = parseInt(tr.firstChild.nextElementSibling.innerText) - 1;
+    let index = parseInt(tr.id);
     let saves_array = (await storageapi.get({saves: []})).saves;
     console.log(saves_array.splice(index,1)[0].url);
     storageapi.set({saves: saves_array});
     tr.parentElement.removeChild(tr);
     document.getElementById('tabcount').innerText = saves_array.length;
     while (next_tr) {
-        let idx = parseInt(next_tr.firstChild.nextElementSibling.innerText);
-        next_tr.firstChild.nextElementSibling.innerText = idx - 1;
+        let idx = parseInt(next_tr.id);
+        next_tr.firstChild.nextElementSibling.innerText = (idx + 1) - 1; // next_tr.id is zero-based, so convert to 1-based, then decrement
+        next_tr.id = idx - 1;
         next_tr = next_tr.nextElementSibling;
     }
     let end = new Date().valueOf();
@@ -36,7 +37,7 @@ async function on_save_title_click(e) {
     let input = title_td.lastElementChild;
     let new_title = input.value;
     link.innerText = new_title;
-    let index = parseInt(title_td.parentElement.firstElementChild.nextElementSibling.innerText) - 1;
+    let index = parseInt(title_td.parentElement.id);
     let saves_array = (await storageapi.get({saves: []})).saves;
     saves_array[index].title = new_title;
     await storageapi.set({saves: saves_array});
@@ -77,7 +78,7 @@ async function on_save_tags_click(e) {
         tags_td.appendChild(pre);
     }
     let saves_array = (await storageapi.get({saves: []})).saves;
-    let index = parseInt(tags_td.parentElement.firstElementChild.nextElementSibling.innerText) - 1;
+    let index = parseInt(tags_td.parentElement.id);
     saves_array[index].tags = tags;
     await storageapi.set({saves: saves_array});
     save_button.parentElement.removeChild(save_button);
@@ -86,7 +87,7 @@ async function on_save_tags_click(e) {
 async function on_edit_tags_click(e) {
     let edit_button = e.currentTarget;
     let tags_td = edit_button.parentElement.previousElementSibling;
-    let index = parseInt(tags_td.parentElement.firstElementChild.nextElementSibling.innerText) - 1;
+    let index = parseInt(tags_td.parentElement.id);
     let saves_array = (await storageapi.get({saves: []})).saves;
     let tags_array = saves_array[index].tags;
     let tags_string = tags_array ? tags_array.join(';') : '';
@@ -204,6 +205,7 @@ window.addEventListener('load',async function(){
         tr.appendChild(tags_td);
         tr.appendChild(tags_edit_button_td);
         tr.appendChild(link_td);
+        tr.id = i;
         table.appendChild(tr);
     }
 
