@@ -208,5 +208,6 @@ window.addEventListener('load',async function(){
     }
 
     document.body.removeChild(document.getElementById('loading-marker'));
-    console.log("render took " + (new Date().valueOf() - start) + " ms");
+    let elapsed_time = new Date().valueOf() - start;
+    console.log("render took " + elapsed_time + " ms = " + (elapsed_time/saves_array.length).toFixed(2) + " ms per tab");
 });
