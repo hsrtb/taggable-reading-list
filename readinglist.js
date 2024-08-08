@@ -52,7 +52,7 @@ function on_edit_title_click(e) {
     let link = title_td.firstElementChild;
     let input = document.createElement('input');
     let save_button = document.createElement('button');
-    save_button.innerText = 'save title';
+    save_button.innerHTML = 'save&nbsp;title';
     save_button.addEventListener('click', on_save_title_click);
     edit_button.parentElement.appendChild(save_button);
     edit_button.style.display = 'none';
@@ -98,7 +98,7 @@ async function on_edit_tags_click(e) {
     input.addEventListener('input', e => e.target.size = e.target.value.length);
     input.style.fontFamily = 'monospace';
     let save_button = document.createElement('button');
-    save_button.innerText = 'save tags';
+    save_button.innerHTML = 'save&nbsp;tags';
     save_button.addEventListener('click', on_save_tags_click);
     edit_button.parentElement.appendChild(save_button);
     edit_button.style.display = 'none';
@@ -174,7 +174,7 @@ function zero_pad(num) {
 }
 function format_date(date_msecs) {
     let date = new Date(date_msecs);
-    return `${date.getFullYear()}-${zero_pad(date.getMonth()+1)}-${zero_pad(date.getDate())} ${zero_pad(date.getHours())}${zero_pad(date.getMinutes())}${zero_pad(date.getSeconds())}`;
+    return `${date.getFullYear()}-${zero_pad(date.getMonth()+1)}-${zero_pad(date.getDate())}&nbsp;${zero_pad(date.getHours())}${zero_pad(date.getMinutes())}${zero_pad(date.getSeconds())}`;
 }
 function format_date_long(date_msecs) {
     let date = new Date(date_msecs);
@@ -256,7 +256,7 @@ window.addEventListener('load',async function(){
         title_link.addEventListener('click',on_tablink_click);
         title_td.appendChild(title_link);
         let title_edit_button = document.createElement('button');
-        title_edit_button.innerText = 'edit title';
+        title_edit_button.innerHTML = 'edit&nbsp;title';
         title_edit_button.addEventListener('click', on_edit_title_click);
         title_edit_button_td.appendChild(title_edit_button);
         if (save.tags) for (const tag of save.tags) {
@@ -266,7 +266,7 @@ window.addEventListener('load',async function(){
             tags_td.appendChild(pre);
         }
         let tags_edit_button = document.createElement('button');
-        tags_edit_button.innerText = 'edit tags';
+        tags_edit_button.innerHTML = 'edit&nbsp;tags';
         tags_edit_button.addEventListener('click', on_edit_tags_click);
         tags_edit_button_td.appendChild(tags_edit_button);
         let link_link = document.createElement('a');
