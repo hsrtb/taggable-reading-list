@@ -24,7 +24,7 @@ a {
     text-decoration: none;
     color: var(--link-color);
 }
-#header {
+.header-class {
     font-size: calc(2 * var(--base-font-size));
 }
 .entrynumber {
@@ -47,6 +47,7 @@ a {
     background-color: black;
     margin: 2px;
     font-size: 0.9em;
+    cursor: pointer;
 }
 textarea {
     font-family: monospace;

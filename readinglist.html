@@ -9,9 +9,12 @@
     <body>
         <div id="tablist">
             <table><tr>
-                <td id="header">Total: <span id="tabcount">---</span> tabs</td>
+                <td id="header" class='header-class'>Total: <span id="tabcount">---</span> tabs</td>
+                <td id="match-header" class='header-class' style="display: none"><span id='filter-tag' style='font-family: monospace'></span>: <span id='match-count'></span> tabs</td>
                 <td><button id="import-button">Import Data</button></td>
                 <td><button id="export-button">Export Data</button></td>
+                <td><button id="clear-filter" style="display: none">Clear Filter</button></td>
+                <td><input type='text' id='tag-input'></td><td><button id='filter-on-tag'>Filter on tag</button></td>
             </tr></table>
             <pre id="loading-marker">Loading...</pre>
         </div>

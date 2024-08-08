@@ -13,13 +13,17 @@ async function on_delete_click(e) {
 async function delete_entry(tr) {
     let start = new Date().valueOf();
     let next_tr = tr.nextElementSibling;
-    if (tr.getAttribute('class') == 'firstinblock' && next_tr) next_tr.setAttribute('class', 'firstinblock');
+    if (tr.getAttribute('class') == 'firstinblock' && next_tr) next_tr.classList.add('firstinblock');
     let index = parseInt(tr.id);
     let saves_array = (await storageapi.get({saves: []})).saves;
     console.log(saves_array.splice(index,1)[0].url);
     storageapi.set({saves: saves_array});
     tr.parentElement.removeChild(tr);
     document.getElementById('tabcount').innerText = saves_array.length;
+    if (document.getElementById('match-header').style.display === '') {
+        let match_count_element = document.getElementById('match-count');
+        match_count_element.innerText = parseInt(match_count_element.innerText) - 1;
+    }
     while (next_tr) {
         let idx = parseInt(next_tr.id);
         next_tr.firstChild.nextElementSibling.innerText = (idx + 1) - 1; // next_tr.id is zero-based, so convert to 1-based, then decrement
@@ -74,6 +78,7 @@ async function on_save_tags_click(e) {
         let pre = document.createElement('pre');
         pre.innerText = tag;
         pre.setAttribute('class', 'tag');
+        pre.addEventListener('click', on_tag_click);
         tags_td.appendChild(pre);
     }
     let saves_array = (await storageapi.get({saves: []})).saves;
@@ -182,6 +187,55 @@ function format_date_long(date_msecs) {
     let timestr = date.toTimeString();
     return `${days[date.getDay()]} ${zero_pad(date.getDate())} ${months[date.getMonth()]} ${date.getFullYear()} ${timestr.slice(0,9)}${timestr.slice(12)}`
 }
+async function do_filter_on_tag(selected_tag) {
+    let start = new Date().valueOf();
+    let saves = (await storageapi.get({saves: []})).saves;
+    let n_matches = 0;
+    for (let i = 0; i < saves.length; ++i) {
+        let match = false;
+        if(saves[i].tags) for (const tag of saves[i].tags) {
+            if (tag === selected_tag || tag.startsWith(selected_tag + '/')) {
+                match = true;
+                break;
+            }
+        }
+        let tr = document.getElementById(i);
+        if (match) {
+            tr.style.display = '';
+            n_matches++;
+        } else tr.style.display = 'none';
+    }
+    await do_apply_firstinblock();
+    document.getElementById('clear-filter').style.display = '';
+    document.getElementById('filter-tag').innerText = selected_tag;
+    document.getElementById('match-count').innerText = n_matches;
+    document.getElementById('match-header').style.display = '';
+    console.log('filter on tag',selected_tag,'took',new Date().valueOf() - start,'ms');
+}
+async function do_clear_filter() {
+    let start = new Date().valueOf();
+    for (let tr = document.getElementById('0'); tr; tr = tr.nextElementSibling) tr.style.display = '';
+    await do_apply_firstinblock();
+    console.log('clear filter took',new Date().valueOf() - start,'ms');
+    document.getElementById('clear-filter').style.display = 'none';
+    document.getElementById('match-header').style.display = 'none';
+}
+async function on_tag_click(e) {
+    await do_filter_on_tag(e.currentTarget.innerText);
+}
+async function do_apply_firstinblock() {
+    console.time('firstinblock');
+    let last_date = null;
+    let saves = (await storageapi.get({saves: []})).saves;
+    for (let i = 0; i < saves.length; ++i) {
+        let tr = document.getElementById(i);
+        if (tr.style.display === 'none') continue;
+        if (i > 0 && saves[i].date != last_date) tr.classList.add('firstinblock');
+        else tr.classList.remove('firstinblock');
+        last_date = saves[i].date;
+    }
+    console.timeEnd('firstinblock');
+}
 window.addEventListener('load',async function(){
     // ensure only one instance of this page is ever loaded
     let readinglist_pages = await browser.tabs.query({url: window.location.href});
@@ -199,6 +253,7 @@ window.addEventListener('load',async function(){
 
     document.getElementById('import-button').addEventListener('click', on_import_click);
     document.getElementById('export-button').addEventListener('click', on_export_click);
+    document.getElementById('clear-filter').addEventListener('click', do_clear_filter);
     document.getElementById('import-add').addEventListener('click', on_import_add_click);
     document.getElementById('import-replace').addEventListener('click', on_import_replace_click);
     document.getElementById('copy').addEventListener('click', () => {
@@ -212,6 +267,9 @@ window.addEventListener('load',async function(){
         document.getElementById('import').style.display = 'none';
         document.getElementById('tablist').style.display = '';
     });
+    document.getElementById('filter-on-tag').addEventListener('click', () => {
+        do_filter_on_tag(document.getElementById('tag-input').value);
+    });
 
     let start = new Date().valueOf();
     let tablist_body = document.getElementById('tablist');
@@ -219,7 +277,6 @@ window.addEventListener('load',async function(){
     tablist_body.appendChild(table);
     let saves_array = (await storageapi.get({saves: []})).saves;
     document.getElementById('tabcount').innerText = saves_array.length;
-    let last_date = null;
     for (let i = 0; i < saves_array.length; ++i) {
         const save = saves_array[i];
         let tr = document.createElement('tr');
@@ -232,9 +289,6 @@ window.addEventListener('load',async function(){
         let tags_td = document.createElement('td');
         let tags_edit_button_td = document.createElement('td');
         let link_td = document.createElement('td');
-
-        if (i > 0 && save.date != last_date) tr.setAttribute('class', 'firstinblock');
-        last_date = save.date;
 
         delete_td.setAttribute('class','deletebutton');
         delete_td.innerHTML = "<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg' width='10' height='10'>\n" +
@@ -262,6 +316,7 @@ window.addEventListener('load',async function(){
             let pre = document.createElement('pre');
             pre.innerText = tag;
             pre.setAttribute('class', 'tag');
+            pre.addEventListener('click', on_tag_click);
             tags_td.appendChild(pre);
         }
         let tags_edit_button = document.createElement('button');
@@ -286,6 +341,7 @@ window.addEventListener('load',async function(){
         tr.id = i;
         table.appendChild(tr);
     }
+    await do_apply_firstinblock();
 
     tablist_body.removeChild(document.getElementById('loading-marker'));
     let elapsed_time = new Date().valueOf() - start;
