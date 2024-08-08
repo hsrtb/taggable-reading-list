@@ -162,6 +162,7 @@ async function on_import_replace_click() {
     if (!confirm("Delete all tabs and replace with data in text box?")) return;
     let data = parse_data_import(string);
     if (data == null) return;
+    data.sort((a, b) => b.date - a.date);
     await storageapi.set({saves: data});
     await browser.tabs.reload((await browser.tabs.getCurrent()).id);
 }
