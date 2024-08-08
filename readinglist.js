@@ -58,8 +58,7 @@ function on_edit_title_click(e) {
     edit_button.style.display = 'none';
     input.type = 'text';
     input.value = link.innerText;
-    input.size = input.value.length;
-    input.addEventListener('input', e => e.target.size = e.target.value.length);
+    input.addEventListener('input', e => e.target.size = e.target.value.length + 1);
     title_td.appendChild(input);
     link.style.display = 'none';
     input.focus();
@@ -95,7 +94,7 @@ async function on_edit_tags_click(e) {
     input.type = 'text';
     input.placeholder = 'semicolon-separated tags';
     input.value = tags_string;
-    input.addEventListener('input', e => e.target.size = e.target.value.length);
+    input.addEventListener('input', e => e.target.size = e.target.value.length + 1);
     input.style.fontFamily = 'monospace';
     let save_button = document.createElement('button');
     save_button.innerHTML = 'save&nbsp;tags';
