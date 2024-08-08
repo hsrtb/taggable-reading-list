@@ -107,6 +107,64 @@ async function on_edit_tags_click(e) {
     tags_td.appendChild(input);
     input.focus();
 }
+function on_import_click() {
+    let tablist_body = document.getElementById('tablist');
+    let import_area = document.getElementById('import');
+    tablist_body.style.display = 'none';
+    import_area.style.display = '';
+}
+async function on_export_click() {
+    let tablist_body = document.getElementById('tablist');
+    let export_area = document.getElementById('export');
+    tablist_body.style.display = 'none';
+    export_area.style.display = '';
+    let exported_data_area = document.getElementById('exported-data');
+    let saves = (await storageapi.get({saves: []})).saves;
+    let string = JSON.stringify((await storageapi.get({saves: []})).saves);
+    let size_report = document.getElementById('export-data-size');
+    let size = new Blob([string]).size;
+    size_report.innerText = `${saves.length} tabs, ${size} bytes = ${(size / saves.length).toFixed(0)} bytes per tab`;
+    exported_data_area.innerText = string;
+}
+function parse_data_import(string) {
+    let data;
+    try {
+        data = JSON.parse(string);
+    } catch(e) {
+        alert(e);
+        return null;
+    }
+    if (!(data instanceof Array)) {
+        alert("expected data to be an array");
+        return null;
+    }
+    for (const save of data) {
+        if (!save.url || !save.title || !save.date) {
+            alert("data entry missing one of required properties (url, title, date)");
+            return null;
+        }
+    }
+    return data;
+}
+async function on_import_add_click() {
+    let textarea = document.getElementById('imported-data');
+    let string = textarea.value;
+    let data = parse_data_import(string);
+    if (data == null) return;
+    let new_data = data.concat((await storageapi.get({saves: []})).saves);
+    new_data.sort((a, b) => b.date - a.date);
+    await storageapi.set({saves: new_data});
+    await browser.tabs.reload((await browser.tabs.getCurrent()).id);
+}
+async function on_import_replace_click() {
+    let textarea = document.getElementById('imported-data');
+    let string = textarea.value;
+    if (!confirm("Delete all tabs and replace with data in text box?")) return;
+    let data = parse_data_import(string);
+    if (data == null) return;
+    await storageapi.set({saves: data});
+    await browser.tabs.reload((await browser.tabs.getCurrent()).id);
+}
 function zero_pad(num) {
     return num.toString().padStart(2,'0');
 }
@@ -136,9 +194,26 @@ window.addEventListener('load',async function(){
         await browser.tabs.remove((await browser.tabs.getCurrent()).id);
     }
 
+    document.getElementById('import-button').addEventListener('click', on_import_click);
+    document.getElementById('export-button').addEventListener('click', on_export_click);
+    document.getElementById('import-add').addEventListener('click', on_import_add_click);
+    document.getElementById('import-replace').addEventListener('click', on_import_replace_click);
+    document.getElementById('copy').addEventListener('click', () => {
+        navigator.clipboard.writeText(document.getElementById('exported-data').value).then(() => alert('copied'),(e) => alert(e));
+    });
+    document.getElementById('back').addEventListener('click', () => {
+        document.getElementById('export').style.display = 'none';
+        document.getElementById('tablist').style.display = '';
+    });
+    document.getElementById('back-import').addEventListener('click', () => {
+        document.getElementById('import').style.display = 'none';
+        document.getElementById('tablist').style.display = '';
+    });
+
     let start = new Date().valueOf();
+    let tablist_body = document.getElementById('tablist');
     let table = document.createElement('table');
-    document.body.appendChild(table);
+    tablist_body.appendChild(table);
     let saves_array = (await storageapi.get({saves: []})).saves;
     document.getElementById('tabcount').innerText = saves_array.length;
     let last_date = null;
@@ -209,7 +284,7 @@ window.addEventListener('load',async function(){
         table.appendChild(tr);
     }
 
-    document.body.removeChild(document.getElementById('loading-marker'));
+    tablist_body.removeChild(document.getElementById('loading-marker'));
     let elapsed_time = new Date().valueOf() - start;
     console.log("render took " + elapsed_time + " ms = " + (elapsed_time/saves_array.length).toFixed(2) + " ms per tab");
 });

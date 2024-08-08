@@ -48,3 +48,10 @@ a {
     margin: 2px;
     font-size: 0.9em;
 }
+textarea {
+    font-family: monospace;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    width: 90vw;
+    height: 90vh;
+}

@@ -7,9 +7,21 @@
         <script src="readinglist.js"></script>
     </head>
     <body>
-        <div id="header">
-            <p>Total: <span id="tabcount">---</span> tabs</p>
+        <div id="tablist">
+            <table><tr>
+                <td id="header">Total: <span id="tabcount">---</span> tabs</td>
+                <td><button id="import-button">Import Data</button></td>
+                <td><button id="export-button">Export Data</button></td>
+            </tr></table>
+            <pre id="loading-marker">Loading...</pre>
         </div>
-        <pre id="loading-marker">Loading...</pre>
+        <div id="import" style="display: none">
+            <button id='import-add'>Add to database</button><button id='import-replace'>Replace database</button><button id='back-import'>Back to tab list</button>
+            <textarea id='imported-data'></textarea>
+        </div>
+        <div id="export" style="display: none">
+            <span style="font-size: calc(1.5 * var(--base-font-size)); padding-inline-end: 1em" id="export-data-size"></span><button id='back'>Back to tab list</button><button id='copy'>Copy to clipboard</button>
+            <textarea id='exported-data' readonly></textarea>
+        </div>
     </body>
 </html>
