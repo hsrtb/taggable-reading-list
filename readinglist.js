@@ -138,9 +138,12 @@ function parse_data_import(string) {
         alert("expected data to be an array");
         return null;
     }
-    for (const save of data) {
-        if (!save.url || !save.title || !save.date) {
-            alert("data entry missing one of required properties (url, title, date)");
+    for (let i = 0; i < data.length; ++i) {
+        let save = data[i];
+        // apparently empty strings convert to false
+        if (save.url === undefined || save.title === undefined || save.date === undefined) {
+            alert("data entry missing one of required properties (url, title, date) (details in console)");
+            console.log('missing url, title, or date at index',i,'of imported data on object',save);
             return null;
         }
     }
