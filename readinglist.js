@@ -236,6 +236,18 @@ async function do_apply_firstinblock() {
     }
     console.timeEnd('firstinblock');
 }
+async function do_toggle_urls() {
+    let button = document.getElementById('show-hide-urls');
+    if (button.innerText === 'Hide URLs') {
+        let sheet = new CSSStyleSheet();
+        await sheet.replace('.url { display: none }');
+        document.adoptedStyleSheets = [sheet];
+        button.innerText = 'Show URLs';
+    } else {
+        document.adoptedStyleSheets = [];
+        button.innerText = 'Hide URLs';
+    }
+}
 window.addEventListener('load',async function(){
     // ensure only one instance of this page is ever loaded
     let readinglist_pages = await browser.tabs.query({url: window.location.href});
@@ -270,6 +282,7 @@ window.addEventListener('load',async function(){
     document.getElementById('filter-on-tag').addEventListener('click', () => {
         do_filter_on_tag(document.getElementById('tag-input').value);
     });
+    document.getElementById('show-hide-urls').addEventListener('click', do_toggle_urls);
 
     let start = new Date().valueOf();
     let tablist_body = document.getElementById('tablist');
@@ -328,6 +341,7 @@ window.addEventListener('load',async function(){
         link_link.innerText = save.url;
         link_link.addEventListener('click',on_tablink_click);
         link_td.appendChild(link_link);
+        link_td.classList.add('url');
 
         tr.appendChild(delete_td);
         tr.appendChild(number_td);
