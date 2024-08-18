@@ -13,7 +13,6 @@ async function on_delete_click(e) {
 async function delete_entry(tr) {
     let start = new Date().valueOf();
     let next_tr = tr.nextElementSibling;
-    if (tr.getAttribute('class') == 'firstinblock' && next_tr) next_tr.classList.add('firstinblock');
     let index = parseInt(tr.id);
     let saves_array = (await storageapi.get({saves: []})).saves;
     console.log(saves_array.splice(index,1)[0].url);
@@ -205,7 +204,6 @@ async function do_filter_on_tag(selected_tag) {
             n_matches++;
         } else tr.style.display = 'none';
     }
-    await do_apply_firstinblock();
     document.getElementById('clear-filter').style.display = '';
     document.getElementById('filter-tag').innerText = selected_tag;
     document.getElementById('match-count').innerText = n_matches;
@@ -215,26 +213,12 @@ async function do_filter_on_tag(selected_tag) {
 async function do_clear_filter() {
     let start = new Date().valueOf();
     for (let tr = document.getElementById('0'); tr; tr = tr.nextElementSibling) tr.style.display = '';
-    await do_apply_firstinblock();
     console.log('clear filter took',new Date().valueOf() - start,'ms');
     document.getElementById('clear-filter').style.display = 'none';
     document.getElementById('match-header').style.display = 'none';
 }
 async function on_tag_click(e) {
     await do_filter_on_tag(e.currentTarget.innerText);
-}
-async function do_apply_firstinblock() {
-    console.time('firstinblock');
-    let last_date = null;
-    let saves = (await storageapi.get({saves: []})).saves;
-    for (let i = 0; i < saves.length; ++i) {
-        let tr = document.getElementById(i);
-        if (tr.style.display === 'none') continue;
-        if (i > 0 && saves[i].date != last_date) tr.classList.add('firstinblock');
-        else tr.classList.remove('firstinblock');
-        last_date = saves[i].date;
-    }
-    console.timeEnd('firstinblock');
 }
 async function do_toggle_urls() {
     let button = document.getElementById('show-hide-urls');
@@ -354,13 +338,20 @@ window.addEventListener('load',async function(){
     let tablist_body = document.getElementById('tablist');
     let table = document.createElement('table');
     table.id = 'tablist-table';
-    tablist_body.appendChild(table);
     let saves_array = (await storageapi.get({saves: []})).saves;
     document.getElementById('tabcount').innerText = saves_array.length;
-    for (let i = 0; i < saves_array.length; ++i) table.appendChild(generate_tr(saves_array[i], i));
-    await do_apply_firstinblock();
+    console.time('generate_tr()');
+    let trs = [];
+    for (let i = 0; i < saves_array.length; ++i) trs.push(generate_tr(saves_array[i], i));
+    console.timeEnd('generate_tr()');
+    console.time('table.append()');
+    table.append(...trs);
+    console.timeEnd('table.append()');
 
     tablist_body.removeChild(document.getElementById('loading-marker'));
+    console.time('tablist_body.appendChild()');
+    tablist_body.appendChild(table);
+    console.timeEnd('tablist_body.appendChild()');
     let elapsed_time = new Date().valueOf() - start;
     console.log("render took " + elapsed_time + " ms = " + (elapsed_time/saves_array.length).toFixed(2) + " ms per tab");
 });
@@ -382,7 +373,7 @@ browser.runtime.onMessage.addListener(async (message) => {
         document.getElementById('tablist-table').prepend(...trs);
         let tabcount = document.getElementById('tabcount');
         tabcount.innerText = parseInt(tabcount.innerText) + message.new_tabs.length;
-        await do_clear_filter(); // do_clear_filter() calls do_apply_firstinblock()
+        await do_clear_filter();
         let end = new Date().valueOf();
         console.log(`adding ${message.new_tabs.length} tabs took ${end-start} ms`);
     }
