@@ -248,6 +248,70 @@ async function do_toggle_urls() {
         button.innerText = 'Hide URLs';
     }
 }
+function generate_tr(save, id) {
+    let tr = document.createElement('tr');
+    let delete_td = document.createElement('td');
+    let number_td = document.createElement('td');
+    let date_td = document.createElement('td');
+    let favicon_td = document.createElement('td');
+    let title_td = document.createElement('td');
+    let title_edit_button_td = document.createElement('td');
+    let tags_td = document.createElement('td');
+    let tags_edit_button_td = document.createElement('td');
+    let link_td = document.createElement('td');
+
+    delete_td.setAttribute('class','deletebutton');
+    delete_td.innerHTML = "<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg' width='10' height='10'>\n" +
+        "<defs><style>.b {stroke: #bbb; stroke-linecap: round; stroke-width: 18px}</style></defs>\n" +
+        "<line class='b' x1='9' y1='9' x2='91' y2='91'/>\n" +
+        "<line class='b' x1='9' y1='91' x2='91' y2='9'/>\n" +
+        "</svg>";
+    delete_td.addEventListener('click',on_delete_click);
+    number_td.innerText = id + 1;
+    number_td.setAttribute('class', 'entrynumber');
+    date_td.innerHTML = `<span title='${format_date_long(save.date)}'>${format_date(save.date)}</span>`;
+    let favicon = document.createElement('img');
+    favicon.src = 'https://www.google.com/s2/favicons?sz=16&domain=' + new URL(save.url).hostname;
+    favicon_td.appendChild(favicon);
+    let title_link = document.createElement('a');
+    title_link.setAttribute('href',save.url);
+    title_link.innerText = save.title;
+    title_link.addEventListener('click',on_tablink_click);
+    title_td.appendChild(title_link);
+    let title_edit_button = document.createElement('button');
+    title_edit_button.innerHTML = 'edit&nbsp;title';
+    title_edit_button.addEventListener('click', on_edit_title_click);
+    title_edit_button_td.appendChild(title_edit_button);
+    if (save.tags) for (const tag of save.tags) {
+        let pre = document.createElement('pre');
+        pre.innerText = tag;
+        pre.setAttribute('class', 'tag');
+        pre.addEventListener('click', on_tag_click);
+        tags_td.appendChild(pre);
+    }
+    let tags_edit_button = document.createElement('button');
+    tags_edit_button.innerHTML = 'edit&nbsp;tags';
+    tags_edit_button.addEventListener('click', on_edit_tags_click);
+    tags_edit_button_td.appendChild(tags_edit_button);
+    let link_link = document.createElement('a');
+    link_link.setAttribute('href',save.url);
+    link_link.innerText = save.url;
+    link_link.addEventListener('click',on_tablink_click);
+    link_td.appendChild(link_link);
+    link_td.classList.add('url');
+
+    tr.appendChild(delete_td);
+    tr.appendChild(number_td);
+    tr.appendChild(date_td);
+    tr.appendChild(favicon_td);
+    tr.appendChild(title_td);
+    tr.appendChild(title_edit_button_td);
+    tr.appendChild(tags_td);
+    tr.appendChild(tags_edit_button_td);
+    tr.appendChild(link_td);
+    tr.id = id;
+    return tr;
+}
 window.addEventListener('load',async function(){
     // ensure only one instance of this page is ever loaded
     let readinglist_pages = await browser.tabs.query({url: window.location.href});
@@ -287,77 +351,38 @@ window.addEventListener('load',async function(){
     let start = new Date().valueOf();
     let tablist_body = document.getElementById('tablist');
     let table = document.createElement('table');
+    table.id = 'tablist-table';
     tablist_body.appendChild(table);
     let saves_array = (await storageapi.get({saves: []})).saves;
     document.getElementById('tabcount').innerText = saves_array.length;
-    for (let i = 0; i < saves_array.length; ++i) {
-        const save = saves_array[i];
-        let tr = document.createElement('tr');
-        let delete_td = document.createElement('td');
-        let number_td = document.createElement('td');
-        let date_td = document.createElement('td');
-        let favicon_td = document.createElement('td');
-        let title_td = document.createElement('td');
-        let title_edit_button_td = document.createElement('td');
-        let tags_td = document.createElement('td');
-        let tags_edit_button_td = document.createElement('td');
-        let link_td = document.createElement('td');
-
-        delete_td.setAttribute('class','deletebutton');
-        delete_td.innerHTML = "<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg' width='10' height='10'>\n" +
-                              "<defs><style>.b {stroke: #bbb; stroke-linecap: round; stroke-width: 18px}</style></defs>\n" +
-                              "<line class='b' x1='9' y1='9' x2='91' y2='91'/>\n" +
-                              "<line class='b' x1='9' y1='91' x2='91' y2='9'/>\n" +
-                              "</svg>";
-        delete_td.addEventListener('click',on_delete_click);
-        number_td.innerText = i + 1;
-        number_td.setAttribute('class', 'entrynumber');
-        date_td.innerHTML = `<span title='${format_date_long(save.date)}'>${format_date(save.date)}</span>`;
-        let favicon = document.createElement('img');
-        favicon.src = 'https://www.google.com/s2/favicons?sz=16&domain=' + new URL(save.url).hostname;
-        favicon_td.appendChild(favicon);
-        let title_link = document.createElement('a');
-        title_link.setAttribute('href',save.url);
-        title_link.innerText = save.title;
-        title_link.addEventListener('click',on_tablink_click);
-        title_td.appendChild(title_link);
-        let title_edit_button = document.createElement('button');
-        title_edit_button.innerHTML = 'edit&nbsp;title';
-        title_edit_button.addEventListener('click', on_edit_title_click);
-        title_edit_button_td.appendChild(title_edit_button);
-        if (save.tags) for (const tag of save.tags) {
-            let pre = document.createElement('pre');
-            pre.innerText = tag;
-            pre.setAttribute('class', 'tag');
-            pre.addEventListener('click', on_tag_click);
-            tags_td.appendChild(pre);
-        }
-        let tags_edit_button = document.createElement('button');
-        tags_edit_button.innerHTML = 'edit&nbsp;tags';
-        tags_edit_button.addEventListener('click', on_edit_tags_click);
-        tags_edit_button_td.appendChild(tags_edit_button);
-        let link_link = document.createElement('a');
-        link_link.setAttribute('href',save.url);
-        link_link.innerText = save.url;
-        link_link.addEventListener('click',on_tablink_click);
-        link_td.appendChild(link_link);
-        link_td.classList.add('url');
-
-        tr.appendChild(delete_td);
-        tr.appendChild(number_td);
-        tr.appendChild(date_td);
-        tr.appendChild(favicon_td);
-        tr.appendChild(title_td);
-        tr.appendChild(title_edit_button_td);
-        tr.appendChild(tags_td);
-        tr.appendChild(tags_edit_button_td);
-        tr.appendChild(link_td);
-        tr.id = i;
-        table.appendChild(tr);
-    }
+    for (let i = 0; i < saves_array.length; ++i) table.appendChild(generate_tr(saves_array[i], i));
     await do_apply_firstinblock();
 
     tablist_body.removeChild(document.getElementById('loading-marker'));
     let elapsed_time = new Date().valueOf() - start;
     console.log("render took " + elapsed_time + " ms = " + (elapsed_time/saves_array.length).toFixed(2) + " ms per tab");
 });
+browser.runtime.onMessage.addListener(async (message) => {
+    console.log(message.msg);
+    if (message.new_tabs) {
+        let start = new Date().valueOf();
+        let trs = [];
+        for (let i = 0; i < message.new_tabs.length; ++i) trs.push(generate_tr(message.new_tabs[i],i));
+        // looping with index variable and getElementById() leads to looping repeatedly over the first message.new_tabs.length entries
+        // because when i == message.new_tabs.length, getElementById(i) returns the original first entry with its updated id instead of the
+        // entry that originally had the id message.new_tabs.length because it appears first in the document.
+        // basically this loop causes a temporary state of having duplicate ids in the document.
+        for (let tr = document.getElementById(0); tr; tr = tr.nextElementSibling) {
+            let i = parseInt(tr.id);
+            tr.id = i + message.new_tabs.length;
+            tr.childNodes[1].innerText = i + message.new_tabs.length + 1;
+        }
+        document.getElementById('tablist-table').prepend(...trs);
+        let tabcount = document.getElementById('tabcount');
+        tabcount.innerText = parseInt(tabcount.innerText) + message.new_tabs.length;
+        await do_clear_filter(); // do_clear_filter() calls do_apply_firstinblock()
+        let end = new Date().valueOf();
+        console.log(`adding ${message.new_tabs.length} tabs took ${end-start} ms`);
+    }
+});
+browser.runtime.sendMessage({}); // trigger background script to send its message containing the message to print in the console
