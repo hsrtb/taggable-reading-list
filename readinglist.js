@@ -348,6 +348,8 @@ window.addEventListener('load',async function(){
     });
     document.getElementById('show-hide-urls').addEventListener('click', do_toggle_urls);
 
+    await do_toggle_urls();
+
     let start = new Date().valueOf();
     let tablist_body = document.getElementById('tablist');
     let table = document.createElement('table');
