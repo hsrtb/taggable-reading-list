@@ -18,6 +18,12 @@
                 "default": "Alt+Shift+2"
             },
             "description": "show reading list"
+        },
+        "add-tabs": {
+            "suggested_key": {
+                "default": "Alt+Shift+3"
+            },
+            "description": "add current window's tabs to list"
         }
     }
 }

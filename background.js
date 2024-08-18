@@ -57,4 +57,5 @@ async function save_tabs() {
 browser.action.onClicked.addListener(save_tabs);
 browser.commands.onCommand.addListener(async function(command) {
     if (command == 'show-list') await show_list();
+    if (command == 'add-tabs') await save_tabs();
 });
