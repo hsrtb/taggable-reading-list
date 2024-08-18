@@ -384,5 +384,6 @@ browser.runtime.onMessage.addListener(async (message) => {
         let end = new Date().valueOf();
         console.log(`adding ${message.new_tabs.length} tabs took ${end-start} ms`);
     }
+    if (message.dupes) alert('duplicates rejected, see console for details');
 });
 browser.runtime.sendMessage({}); // trigger background script to send its message containing the message to print in the console
