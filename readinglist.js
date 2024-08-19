@@ -255,7 +255,7 @@ function generate_tr(save, id) {
     number_td.setAttribute('class', 'entrynumber');
     date_td.innerHTML = `<span title='${format_date_long(save.date)}'>${format_date(save.date)}</span>`;
     let favicon = document.createElement('img');
-    favicon.src = 'https://www.google.com/s2/favicons?sz=16&domain=' + new URL(save.url).hostname;
+    favicon.src = 'https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&size=16&url=http://' + new URL(save.url).hostname;
     favicon_td.appendChild(favicon);
     let title_link = document.createElement('a');
     title_link.setAttribute('href',save.url);
