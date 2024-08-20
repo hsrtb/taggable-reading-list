@@ -14,12 +14,20 @@ body {
 td {
     padding-right: 1em;
 }
-tr:hover > .deletebutton > svg {
+.deletebutton > img {
+    visibility: hidden;
+}
+tr:hover > .deletebutton > img {
     visibility: visible;
 }
 a {
     text-decoration: none;
     color: var(--link-color);
+}
+.block-header {
+    padding-top: 34px;
+    font-size: 24px;
+    padding-left: 18px;
 }
 .header-class {
     font-size: calc(2 * var(--base-font-size));
@@ -30,9 +38,6 @@ a {
 }
 .deletebutton {
     padding-right: 0.4em;
-}
-.deletebutton > svg {
-    visibility: hidden;
 }
 .deletebutton:hover {
     cursor: pointer;

@@ -24,6 +24,7 @@ async function save_tabs() {
     let ids = [];
     let console_message = '';
     let rejected_dupes = false;
+    let date = 1000 * Math.round(new Date().valueOf() / 1000);
     for (const tab of tab_array) {
         if (tab.url == readinglist_page_url) continue;
         let save_tab = true;
@@ -38,7 +39,7 @@ async function save_tabs() {
             rejected_dupes = true;
             console_message += `rejected ${tab.title} ${tab.url} as duplicate of new entry #${dup.idx + 1} ${dup.title} ${dup.url}\n\n`;
         }
-        if (save_tab) new_saves_array.push({url: tab.url, title: tab.title, date: 1000 * Math.round(new Date().valueOf() / 1000)});
+        if (save_tab) new_saves_array.push({url: tab.url, title: tab.title, date: date});
         ids.push(tab.id);// still want to close an unsaved tab, just not add it to the list
     }
     await storageapi.set({saves:new_saves_array.concat(saves_array)});

@@ -12,23 +12,40 @@ async function on_delete_click(e) {
 }
 async function delete_entry(tr) {
     let start = new Date().valueOf();
-    let next_tr = tr.nextElementSibling;
     let index = parseInt(tr.id);
     let saves_array = (await storageapi.get({saves: []})).saves;
-    console.log(saves_array.splice(index,1)[0].url);
+    let deleted_save = saves_array.splice(index, 1)[0];
+    console.log('deleted ', deleted_save.title, deleted_save.url);
     storageapi.set({saves: saves_array});
-    tr.parentElement.removeChild(tr);
+    let table = tr.parentElement;
+    let header_div = table.previousElementSibling;
+    let header_tabcount = header_div.firstElementChild;
+    tr.remove();
     document.getElementById('tabcount').innerText = saves_array.length;
+    let new_header_tabcount = parseInt(header_tabcount.innerText) - 1;
+    header_tabcount.innerText = parseInt(header_tabcount.innerText) - 1;
+    if (new_header_tabcount === 0) {
+        header_div.remove();
+        table.remove();
+    }
+    let match_span = header_div.getElementsByClassName('match-span')[0];
+    if (match_span.style.display === '') {
+        let match_count_span = header_div.getElementsByClassName('filter-count-span')[0];
+        let new_match_count = parseInt(match_count_span.innerText) - 1;
+        if (new_match_count === 0) header_div.style.display = 'none';
+        else match_count_span.innerText = new_match_count;
+    }
     if (document.getElementById('match-header').style.display === '') {
         let match_count_element = document.getElementById('match-count');
         match_count_element.innerText = parseInt(match_count_element.innerText) - 1;
     }
-    while (next_tr) {
-        let idx = parseInt(next_tr.id);
-        next_tr.firstChild.nextElementSibling.innerText = (idx + 1) - 1; // next_tr.id is zero-based, so convert to 1-based, then decrement
-        next_tr.id = idx - 1;
-        next_tr = next_tr.nextElementSibling;
+    console.time('number-update');
+    for (let i = index + 1; i < saves_array.length + 1; ++i) {
+        let next_tr = document.getElementById(i);
+        next_tr.firstChild.nextElementSibling.innerText = (i + 1) - 1; // next_tr.id is zero-based, so convert to 1-based, then decrement
+        next_tr.id = i - 1;
     }
+    console.timeEnd('number-update');
     let end = new Date().valueOf();
     console.log('delete took ' + (end - start) + " ms");
 }
@@ -189,33 +206,65 @@ function format_date_long(date_msecs) {
 async function do_filter_on_tag(selected_tag) {
     let start = new Date().valueOf();
     let saves = (await storageapi.get({saves: []})).saves;
-    let n_matches = 0;
-    for (let i = 0; i < saves.length; ++i) {
-        let match = false;
-        if(saves[i].tags) for (const tag of saves[i].tags) {
-            if (tag === selected_tag || tag.startsWith(selected_tag + '/')) {
-                match = true;
-                break;
-            }
-        }
-        let tr = document.getElementById(i);
-        if (match) {
-            tr.style.display = '';
-            n_matches++;
-        } else tr.style.display = 'none';
+    if (saves.length === 0) {
+        console.log('do_filter_on_tag: 0 tabs');
+        return;
     }
+    let tablist_div = document.getElementById('tablist-div');
+    let global_n_matches = 0;
+    let idx = 0;
+    for (let block = 0, n_blocks = tablist_div.children.length / 2; block < n_blocks; ++block) {
+        let current_header_div = tablist_div.children[block * 2];
+        let current_table = tablist_div.children[block * 2 + 1];
+        let block_n_matches = 0;
+        let ntabs = current_table.children.length;
+        for (let i = 0; i < ntabs; ++i) {
+            let match = false;
+            if (saves[idx + i].tags) for (const tag of saves[idx + i].tags) {
+                if (tag === selected_tag || tag.startsWith(selected_tag + '/')) {
+                    match = true;
+                    break;
+                }
+            }
+            let tr = current_table.children[i];
+            if (match) {
+                tr.style.display = '';
+                block_n_matches++;
+            } else tr.style.display = 'none';
+        }
+        let match_span = current_header_div.getElementsByClassName('match-span')[0];
+        let match_count_span = current_header_div.getElementsByClassName('filter-count-span')[0];
+        let tag_span = current_header_div.getElementsByClassName('filter-tag-span')[0];
+        match_count_span.innerText = block_n_matches;
+        tag_span.innerText = selected_tag;
+        match_span.style.display = '';
+
+        if (block_n_matches === 0) current_header_div.style.display = 'none';
+        else current_header_div.style.display = '';
+
+        idx += ntabs;
+        global_n_matches += block_n_matches
+    }
+
     document.getElementById('clear-filter').style.display = '';
     document.getElementById('filter-tag').innerText = selected_tag;
-    document.getElementById('match-count').innerText = n_matches;
+    document.getElementById('match-count').innerText = global_n_matches;
     document.getElementById('match-header').style.display = '';
     console.log('filter on tag',selected_tag,'took',new Date().valueOf() - start,'ms');
 }
 async function do_clear_filter() {
-    let start = new Date().valueOf();
-    for (let tr = document.getElementById('0'); tr; tr = tr.nextElementSibling) tr.style.display = '';
-    console.log('clear filter took',new Date().valueOf() - start,'ms');
+    console.time('clear-filter');
+    let tablist_div = document.getElementById('tablist-div');
+    for (let block = 0, n_blocks = tablist_div.children.length / 2; block < n_blocks; ++block) {
+        let current_header_div = tablist_div.children[block * 2];
+        let current_table = tablist_div.children[block * 2 + 1];
+        for (let tr of current_table.children) tr.style.display = '';
+        current_header_div.getElementsByClassName('match-span')[0].style.display = 'none';
+        current_header_div.style.display = '';
+    }
     document.getElementById('clear-filter').style.display = 'none';
     document.getElementById('match-header').style.display = 'none';
+    console.timeEnd('clear-filter');
 }
 async function on_tag_click(e) {
     await do_filter_on_tag(e.currentTarget.innerText);
@@ -245,11 +294,9 @@ function generate_tr(save, id) {
     let link_td = document.createElement('td');
 
     delete_td.setAttribute('class','deletebutton');
-    delete_td.innerHTML = "<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg' width='10' height='10'>\n" +
-        "<defs><style>.b {stroke: #bbb; stroke-linecap: round; stroke-width: 18px}</style></defs>\n" +
-        "<line class='b' x1='9' y1='9' x2='91' y2='91'/>\n" +
-        "<line class='b' x1='9' y1='91' x2='91' y2='9'/>\n" +
-        "</svg>";
+    let img = document.createElement('img');
+    img.src = 'icons/x.svg';
+    delete_td.append(img);
     delete_td.addEventListener('click',on_delete_click);
     number_td.innerText = id + 1;
     number_td.setAttribute('class', 'entrynumber');
@@ -296,6 +343,31 @@ function generate_tr(save, id) {
     tr.id = id;
     return tr;
 }
+function generate_table(saves_array, start_idx) {
+    let table = document.createElement('table');
+    let block_date = saves_array[start_idx].date;
+    for (let i = start_idx; ; ++i) {
+        if (i === saves_array.length || saves_array[i].date !== block_date) {
+            let div = document.createElement('div');
+            div.classList.add('block-header');
+            let span = document.createElement('span');
+            span.classList.add('block-head-tabcount');
+            span.innerText = table.childNodes.length;
+            let match_span = document.createElement('span');
+            match_span.style.display = 'none';
+            match_span.setAttribute('class','match-span');
+            let match_span_count_span = document.createElement('span');
+            match_span_count_span.setAttribute('class', 'filter-count-span');
+            let match_span_tag_span = document.createElement('span');
+            match_span_tag_span.style.fontFamily = 'monospace';
+            match_span_tag_span.setAttribute('class','filter-tag-span');
+            match_span.append(", ", match_span_count_span, " ", match_span_tag_span);
+            div.append(span, " tabs", match_span);
+            return [div, table, i === saves_array.length ? null : i];
+        }
+        table.append(generate_tr(saves_array[i], i));
+    }
+}
 window.addEventListener('load',async function(){
     // ensure only one instance of this page is ever loaded
     let readinglist_pages = await browser.tabs.query({url: window.location.href});
@@ -334,23 +406,30 @@ window.addEventListener('load',async function(){
 
     await do_toggle_urls();
 
+
     let start = new Date().valueOf();
     let tablist_body = document.getElementById('tablist');
-    let table = document.createElement('table');
-    table.id = 'tablist-table';
+    let tablist_div = document.createElement('div');
+    tablist_div.id = 'tablist-div';
     let saves_array = (await storageapi.get({saves: []})).saves;
+    if (saves_array.length === 0) {
+        console.log('skipping render because saves_array.length === 0');
+        document.getElementById('loading-marker').remove();
+        document.getElementById('tabcount').innerText = 0;
+        return;
+    }
     document.getElementById('tabcount').innerText = saves_array.length;
     console.time('generate_tr()');
-    let trs = [];
-    for (let i = 0; i < saves_array.length; ++i) trs.push(generate_tr(saves_array[i], i));
+    let div, table, next_idx = 0;
+    while (next_idx !== null) {
+        [div, table, next_idx] = generate_table(saves_array, next_idx);
+        tablist_div.append(div, table);
+    }
     console.timeEnd('generate_tr()');
-    console.time('table.append()');
-    table.append(...trs);
-    console.timeEnd('table.append()');
 
     tablist_body.removeChild(document.getElementById('loading-marker'));
     console.time('tablist_body.appendChild()');
-    tablist_body.appendChild(table);
+    tablist_body.appendChild(tablist_div);
     console.timeEnd('tablist_body.appendChild()');
     let elapsed_time = new Date().valueOf() - start;
     console.log("render took " + elapsed_time + " ms = " + (elapsed_time/saves_array.length).toFixed(2) + " ms per tab");
@@ -359,21 +438,18 @@ browser.runtime.onMessage.addListener(async (message) => {
     console.log(message.msg);
     if (message.new_tabs) {
         let start = new Date().valueOf();
-        let trs = [];
-        for (let i = 0; i < message.new_tabs.length; ++i) trs.push(generate_tr(message.new_tabs[i],i));
-        // looping with index variable and getElementById() leads to looping repeatedly over the first message.new_tabs.length entries
-        // because when i == message.new_tabs.length, getElementById(i) returns the original first entry with its updated id instead of the
-        // entry that originally had the id message.new_tabs.length because it appears first in the document.
-        // basically this loop causes a temporary state of having duplicate ids in the document.
-        for (let tr = document.getElementById(0); tr; tr = tr.nextElementSibling) {
+        let [div, table, next_idx] = generate_table(message.new_tabs, 0);
+        let tablist_div = document.getElementById('tablist-div');
+        for (let tr of tablist_div.getElementsByTagName('tr')) {
             let i = parseInt(tr.id);
             tr.id = i + message.new_tabs.length;
             tr.childNodes[1].innerText = i + message.new_tabs.length + 1;
         }
-        document.getElementById('tablist-table').prepend(...trs);
+        tablist_div.prepend(div, table);
         let tabcount = document.getElementById('tabcount');
         tabcount.innerText = parseInt(tabcount.innerText) + message.new_tabs.length;
         await do_clear_filter();
+
         let end = new Date().valueOf();
         console.log(`adding ${message.new_tabs.length} tabs took ${end-start} ms`);
     }
