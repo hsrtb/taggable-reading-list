@@ -11,6 +11,16 @@ body {
     color: var(--text-color);
     font-size: var(--base-font-size);
 }
+#header-table {
+    background-color: var(--bg-color);
+    position: sticky;
+    top: 0;
+    padding-bottom: 1em;
+    padding-top: 8px;
+}
+.fake-td {
+    padding-right: 1em;
+}
 td {
     padding-right: 1em;
 }
