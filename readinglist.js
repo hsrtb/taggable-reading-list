@@ -14,8 +14,7 @@ async function delete_entry(tr) {
     let start = new Date().valueOf();
     let index = parseInt(tr.id);
     let saves_array = (await storageapi.get({saves: []})).saves;
-    let deleted_save = saves_array.splice(index, 1)[0];
-    console.log('deleted ', deleted_save.title, deleted_save.url);
+    console.log('deleted ', JSON.stringify(saves_array.splice(index, 1)[0]));
     storageapi.set({saves: saves_array});
     let table = tr.parentElement;
     let header_div = table.previousElementSibling;
