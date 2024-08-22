@@ -12,7 +12,7 @@ async function on_delete_click(e) {
 }
 async function delete_entry(tr) {
     let start = new Date().valueOf();
-    let index = parseInt(tr.id);
+    let index = parseInt(tr.children[1].innerText) - 1;
     let saves_array = (await storageapi.get({saves: []})).saves;
     console.log('deleted ', JSON.stringify(saves_array.splice(index, 1)[0]));
     storageapi.set({saves: saves_array});
@@ -39,10 +39,12 @@ async function delete_entry(tr) {
         match_count_element.innerText = parseInt(match_count_element.innerText) - 1;
     }
     console.time('number-update');
-    for (let i = index + 1; i < saves_array.length + 1; ++i) {
-        let next_tr = document.getElementById(i);
-        next_tr.firstChild.nextElementSibling.innerText = (i + 1) - 1; // next_tr.id is zero-based, so convert to 1-based, then decrement
-        next_tr.id = i - 1;
+    let trs = document.getElementById('tablist-div').getElementsByTagName('tr');
+    // i = index because the original tr has been removed, so it does not show up in trs
+    for (let i = index; i < trs.length; ++i) {
+        let tr = trs[i];
+        let before_num = parseInt(tr.children[1].innerText);
+        tr.children[1].innerText = before_num - 1;
     }
     console.timeEnd('number-update');
     let end = new Date().valueOf();
@@ -56,7 +58,7 @@ async function on_save_title_click(e) {
     let input = title_td.lastElementChild;
     let new_title = input.value;
     link.innerText = new_title;
-    let index = parseInt(title_td.parentElement.id);
+    let index = parseInt(title_td.parentElement.children[1].innerText) - 1;
     let saves_array = (await storageapi.get({saves: []})).saves;
     saves_array[index].title = new_title;
     await storageapi.set({saves: saves_array});
@@ -97,7 +99,7 @@ async function on_save_tags_click(e) {
         tags_td.appendChild(pre);
     }
     let saves_array = (await storageapi.get({saves: []})).saves;
-    let index = parseInt(tags_td.parentElement.id);
+    let index = parseInt(tags_td.parentElement.children[1].innerText) - 1;
     saves_array[index].tags = tags;
     await storageapi.set({saves: saves_array});
     save_button.parentElement.removeChild(save_button);
@@ -106,7 +108,7 @@ async function on_save_tags_click(e) {
 async function on_edit_tags_click(e) {
     let edit_button = e.currentTarget;
     let tags_td = edit_button.parentElement.previousElementSibling;
-    let index = parseInt(tags_td.parentElement.id);
+    let index = parseInt(tags_td.parentElement.children[1].innerText) - 1;
     let saves_array = (await storageapi.get({saves: []})).saves;
     let tags_array = saves_array[index].tags;
     let tags_string = tags_array ? tags_array.join(';') : '';
@@ -280,7 +282,7 @@ async function do_toggle_urls() {
         button.innerText = 'Hide URLs';
     }
 }
-function generate_tr(save, id) {
+function generate_tr(save, idx) {
     let tr = document.createElement('tr');
     let delete_td = document.createElement('td');
     let number_td = document.createElement('td');
@@ -297,7 +299,7 @@ function generate_tr(save, id) {
     img.src = 'icons/x.svg';
     delete_td.append(img);
     delete_td.addEventListener('click',on_delete_click);
-    number_td.innerText = id + 1;
+    number_td.innerText = idx + 1;
     number_td.setAttribute('class', 'entrynumber');
     date_td.innerHTML = `<span title='${format_date_long(save.date)}'>${format_date(save.date)}</span>`;
     let favicon = document.createElement('img');
@@ -339,7 +341,6 @@ function generate_tr(save, id) {
     tr.appendChild(tags_td);
     tr.appendChild(tags_edit_button_td);
     tr.appendChild(link_td);
-    tr.id = id;
     return tr;
 }
 function generate_table(saves_array, start_idx) {
@@ -440,9 +441,9 @@ browser.runtime.onMessage.addListener(async (message) => {
         let [div, table, next_idx] = generate_table(message.new_tabs, 0);
         let tablist_div = document.getElementById('tablist-div');
         for (let tr of tablist_div.getElementsByTagName('tr')) {
-            let i = parseInt(tr.id);
-            tr.id = i + message.new_tabs.length;
-            tr.childNodes[1].innerText = i + message.new_tabs.length + 1;
+            let before_num = parseInt(tr.children[1].innerText);
+            //tr.id = i + message.new_tabs.length;
+            tr.childNodes[1].innerText = before_num + message.new_tabs.length;
         }
         tablist_div.prepend(div, table);
         let tabcount = document.getElementById('tabcount');
