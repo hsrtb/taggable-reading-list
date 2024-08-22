@@ -10,7 +10,7 @@
     "permissions": ["tabs", "storage", "unlimitedStorage"],
 
     "background": {
-        "scripts": ["common.js", "background.js"]
+        "scripts": ["background.js"]
     },
     "commands": {
         "show-list": {

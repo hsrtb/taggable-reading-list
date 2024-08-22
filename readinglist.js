@@ -1,3 +1,5 @@
+const storageapi = browser.storage.local;
+
 async function on_tablink_click(e) {
     e.preventDefault();
     let taburl = e.target.href;
@@ -343,6 +345,7 @@ function generate_tr(save, idx) {
     tr.appendChild(link_td);
     return tr;
 }
+// precondition: saves_array.length > start_idx
 function generate_table(saves_array, start_idx) {
     let table = document.createElement('table');
     let block_date = saves_array[start_idx].date;
@@ -416,6 +419,7 @@ window.addEventListener('load',async function(){
         console.log('skipping render because saves_array.length === 0');
         document.getElementById('loading-marker').remove();
         document.getElementById('tabcount').innerText = 0;
+        tablist_body.append(tablist_div); // tablist_div still needs to be there so that tabs can be added in the future
         return;
     }
     document.getElementById('tabcount').innerText = saves_array.length;
@@ -434,15 +438,14 @@ window.addEventListener('load',async function(){
     let elapsed_time = new Date().valueOf() - start;
     console.log("render took " + elapsed_time + " ms = " + (elapsed_time/saves_array.length).toFixed(2) + " ms per tab");
 });
-browser.runtime.onMessage.addListener(async (message) => {
+browser.runtime.onMessage.addListener((msg) => (async (message) => {
     console.log(message.msg);
-    if (message.new_tabs) {
+    if (message.new_tabs && message.new_tabs.length !== 0) { // if all tabs are rejected as dupes background.js sends an empty array
         let start = new Date().valueOf();
         let [div, table, next_idx] = generate_table(message.new_tabs, 0);
         let tablist_div = document.getElementById('tablist-div');
         for (let tr of tablist_div.getElementsByTagName('tr')) {
             let before_num = parseInt(tr.children[1].innerText);
-            //tr.id = i + message.new_tabs.length;
             tr.childNodes[1].innerText = before_num + message.new_tabs.length;
         }
         tablist_div.prepend(div, table);
@@ -454,5 +457,5 @@ browser.runtime.onMessage.addListener(async (message) => {
         console.log(`adding ${message.new_tabs.length} tabs took ${end-start} ms`);
     }
     if (message.dupes) alert('duplicates rejected, see console for details');
-});
+})(msg).catch(e => console.log(e))); // have to do this otherwise exceptions get messaged back to background.js
 browser.runtime.sendMessage({}); // trigger background script to send its message containing the message to print in the console

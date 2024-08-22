@@ -1,3 +1,4 @@
+const storageapi = browser.storage.local;
 const readinglist_page_url = browser.runtime.getURL("readinglist.html");
 
 async function show_list() {
