@@ -45,8 +45,8 @@ async function save_tabs() {
     await storageapi.set({saves:new_saves_array.concat(saves_array)});
 
     let starttabstuff = new Date().valueOf();
-    await browser.tabs.remove(ids);
     let [readinglist_page, was_created] = await show_list();
+    await browser.tabs.remove(ids);
     let end = new Date().valueOf();
     console_message += `background processing took ${end - start} ms total, ${end - starttabstuff} ms to close tabs and open list`;
     if (!was_created) browser.tabs.sendMessage(readinglist_page.id, {msg: console_message, new_tabs: new_saves_array, dupes: rejected_dupes});
