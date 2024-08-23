@@ -386,10 +386,12 @@ function generate_table(saves_array, start_idx) {
             tag_add_input.placeholder = 'tag to add to tabs';
             tag_add_input.style.fontFamily = 'monospace';
             tag_add_input.style.marginLeft = '1em';
+            tag_add_input.style.verticalAlign = 'middle';
             let tag_add_button = document.createElement('button');
             tag_add_button.innerText = 'add tags';
             tag_add_button.addEventListener('click', on_tag_add_click);
             tag_add_button.style.marginLeft = '1em';
+            tag_add_button.style.verticalAlign = 'middle';
             div.append(span, " tabs", match_span, tag_add_input, tag_add_button);
             return [div, table, i === saves_array.length ? null : i];
         }
