@@ -25,5 +25,10 @@
             },
             "description": "add current window's tabs to list"
         }
+    },
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "taggable-reading-list@hsrtb"
+        }
     }
 }
