@@ -86,20 +86,23 @@ function on_edit_title_click(e) {
     link.style.display = 'none';
     input.focus();
 }
+function set_tags_html(tags, tags_td) {
+    tags_td.innerHTML = '';
+    if (tags) for (const tag of tags) {
+        let pre = document.createElement('pre');
+        pre.innerText = tag;
+        pre.setAttribute('class', 'tag');
+        pre.addEventListener('click', on_tag_click);
+        tags_td.append(pre);
+    }
+}
 async function on_save_tags_click(e) {
     let save_button = e.currentTarget;
     let edit_button = save_button.previousElementSibling;
     let tags_td = edit_button.parentElement.previousElementSibling;
     let input = tags_td.firstElementChild;
     let tags = input.value.length != 0 ? [...new Set(input.value.split(';'))] : null; // set removes duplicates
-    tags_td.innerHTML = '';
-    if(tags) for (const tag of tags) {
-        let pre = document.createElement('pre');
-        pre.innerText = tag;
-        pre.setAttribute('class', 'tag');
-        pre.addEventListener('click', on_tag_click);
-        tags_td.appendChild(pre);
-    }
+    set_tags_html(tags, tags_td);
     let saves_array = (await storageapi.get({saves: []})).saves;
     let index = parseInt(tags_td.parentElement.children[1].innerText) - 1;
     saves_array[index].tags = tags;
@@ -148,6 +151,22 @@ async function on_export_click() {
     let size = new Blob([string]).size;
     size_report.innerText = `${saves.length} tabs, ${size} bytes = ${(size / saves.length).toFixed(0)} bytes per tab`;
     exported_data_area.innerText = string;
+}
+async function on_tag_add_click(e) {
+    let header_div = e.target.parentElement;
+    let table = header_div.nextElementSibling;
+    let input = e.target.previousElementSibling;
+    if (input.value.length === 0) return;
+    let saves = (await storageapi.get({saves: []})).saves;
+    for (let tr of table.children) if (tr.style.display === '') {
+        let idx = parseInt(tr.children[1].innerText) - 1;
+        let set = new Set(saves[idx].tags);
+        set.add(input.value);
+        saves[idx].tags = [...set];
+        set_tags_html(saves[idx].tags, tr.children[6]);
+    }
+    input.value = '';
+    await storageapi.set({saves: saves});
 }
 function parse_data_import(string) {
     let data;
@@ -319,13 +338,7 @@ function generate_tr(save, idx) {
     title_edit_button.innerHTML = 'edit&nbsp;title';
     title_edit_button.addEventListener('click', on_edit_title_click);
     title_edit_button_td.appendChild(title_edit_button);
-    if (save.tags) for (const tag of save.tags) {
-        let pre = document.createElement('pre');
-        pre.innerText = tag;
-        pre.setAttribute('class', 'tag');
-        pre.addEventListener('click', on_tag_click);
-        tags_td.appendChild(pre);
-    }
+    set_tags_html(save.tags, tags_td);
     let tags_edit_button = document.createElement('button');
     tags_edit_button.innerHTML = 'edit&nbsp;tags';
     tags_edit_button.addEventListener('click', on_edit_tags_click);
@@ -368,7 +381,16 @@ function generate_table(saves_array, start_idx) {
             match_span_tag_span.style.fontFamily = 'monospace';
             match_span_tag_span.setAttribute('class','filter-tag-span');
             match_span.append(", ", match_span_count_span, " ", match_span_tag_span);
-            div.append(span, " tabs", match_span);
+            let tag_add_input = document.createElement('input');
+            tag_add_input.type = 'text';
+            tag_add_input.placeholder = 'tag to add to tabs';
+            tag_add_input.style.fontFamily = 'monospace';
+            tag_add_input.style.marginLeft = '1em';
+            let tag_add_button = document.createElement('button');
+            tag_add_button.innerText = 'add tags';
+            tag_add_button.addEventListener('click', on_tag_add_click);
+            tag_add_button.style.marginLeft = '1em';
+            div.append(span, " tabs", match_span, tag_add_input, tag_add_button);
             return [div, table, i === saves_array.length ? null : i];
         }
         table.append(generate_tr(saves_array[i], i));
