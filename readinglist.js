@@ -197,7 +197,7 @@ function zero_pad(num) {
 }
 function format_date(date_msecs) {
     let date = new Date(date_msecs);
-    return `${date.getFullYear()}-${zero_pad(date.getMonth()+1)}-${zero_pad(date.getDate())}&nbsp;${zero_pad(date.getHours())}${zero_pad(date.getMinutes())}${zero_pad(date.getSeconds())}`;
+    return `${date.getFullYear()}-${zero_pad(date.getMonth()+1)}-${zero_pad(date.getDate())}\u00a0${zero_pad(date.getHours())}${zero_pad(date.getMinutes())}${zero_pad(date.getSeconds())}`;
 }
 function format_date_long(date_msecs) {
     let date = new Date(date_msecs);
@@ -303,7 +303,10 @@ function generate_tr(save, idx) {
     delete_td.addEventListener('click',on_delete_click);
     number_td.innerText = idx + 1;
     number_td.setAttribute('class', 'entrynumber');
-    date_td.innerHTML = `<span title='${format_date_long(save.date)}'>${format_date(save.date)}</span>`;
+    let date_span = document.createElement('span');
+    date_span.setAttribute('title', format_date_long(save.date));
+    date_span.innerText = format_date(save.date);
+    date_td.append(date_span);
     let favicon = document.createElement('img');
     favicon.src = 'https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&size=16&url=http://' + new URL(save.url).hostname;
     favicon_td.appendChild(favicon);
