@@ -25,6 +25,20 @@ async function save_tabs() {
     let ids = [];
     let console_message = '';
     let rejected_dupes = false;
+    let console_message_ready = false;
+    let page_ready_for_message = false;
+    let readinglist_page = null;
+    let was_created = null;
+    function msg_listener() {
+        console.log('msg_listener() fired, console_message_ready', console_message_ready);
+        if (console_message_ready) {
+            browser.tabs.sendMessage(readinglist_page.id, {msg: console_message, dupes: rejected_dupes});
+        } else {
+            page_ready_for_message = true;
+        }
+        browser.runtime.onMessage.removeListener(msg_listener);
+    }
+    browser.runtime.onMessage.addListener(msg_listener);
     let date = 1000 * Math.round(new Date().valueOf() / 1000);
     for (const tab of tab_array) {
         if (tab.url == readinglist_page_url) continue;
@@ -46,15 +60,21 @@ async function save_tabs() {
     await storageapi.set({saves:new_saves_array.concat(saves_array)});
 
     let starttabstuff = new Date().valueOf();
-    let [readinglist_page, was_created] = await show_list();
+    [readinglist_page, was_created] = await show_list();
+    console.log('before browser.tabs.remove()');
     await browser.tabs.remove(ids);
+    console.log('after browser.tabs.remove()');
     let end = new Date().valueOf();
     console_message += `background processing took ${end - start} ms total, ${end - starttabstuff} ms to close tabs and open list`;
-    if (!was_created) browser.tabs.sendMessage(readinglist_page.id, {msg: console_message, new_tabs: new_saves_array, dupes: rejected_dupes});
-    else browser.runtime.onMessage.addListener(function listener() {
+    if (!was_created) {
+        browser.tabs.sendMessage(readinglist_page.id, {msg: console_message, new_tabs: new_saves_array, dupes: rejected_dupes});
+        browser.runtime.onMessage.removeListener(msg_listener);
+    } else if (page_ready_for_message) { // i.e., if readinglist.html became ready to receive the console message and triggered msg_listener() while we were waiting for browser.tabs.remove()
         browser.tabs.sendMessage(readinglist_page.id, {msg: console_message, dupes: rejected_dupes});
-        browser.runtime.onMessage.removeListener(listener);
-    });
+    } else {
+        console_message_ready = true;
+        console.log('setting console_message_ready to true');
+    }
 }
 browser.action.onClicked.addListener(save_tabs);
 browser.commands.onCommand.addListener(async function(command) {
