@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Taggable Reading List",
-    "version": "0.2.2",
+    "version": "0.2.3",
 
     "action": {
         "default_icon": "icons/save.svg",
@@ -10,7 +10,7 @@
     "permissions": ["tabs", "storage", "unlimitedStorage"],
 
     "background": {
-        "scripts": ["background.js"]
+        "scripts": ["common.js", "background.js"]
     },
     "commands": {
         "show-list": {

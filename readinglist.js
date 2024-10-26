@@ -1,5 +1,3 @@
-const storageapi = browser.storage.local;
-
 async function on_tablink_click(e) {
     e.preventDefault();
     let taburl = e.target.href;
@@ -196,7 +194,30 @@ async function on_import_add_click() {
     let string = textarea.value;
     let data = parse_data_import(string);
     if (data == null) return;
-    let new_data = data.concat((await storageapi.get({saves: []})).saves);
+    let saves_array = (await storageapi.get({saves: []})).saves;
+    let deduped_data = [];
+    let console_message = '';
+    let rejected_dupes = false;
+    for (const save of data) {
+        let keep = true;
+        let dup = null;
+        if (dup = is_dup(save, saves_array)) {
+            keep = false;
+            rejected_dupes = true;
+            console_message += `rejected ${JSON.stringify(save)} as dup of old entry #${dup.idx + 1} ${JSON.stringify(saves_array[dup.idx])}\n\n`;
+        } else if (dup = is_dup(save, deduped_data)) {
+            keep = false;
+            rejected_dupes = true;
+            console_message += `rejected ${JSON.stringify(save)} as dup of new entry #${dup.idx + 1} ${JSON.stringify(deduped_data[dup.idx])}\n\n`;
+        }
+        if (keep) deduped_data.push(save);
+    }
+    if (rejected_dupes) {
+        console.log(console_message);
+        await navigator.clipboard.writeText(console_message);
+        alert('duplicates rejected, see console for details (also copied to clipboard)\n\nafter this alert is dismissed, the page will reload, which will likely clear the console');
+    }
+    let new_data = deduped_data.concat(saves_array);
     new_data.sort((a, b) => b.date - a.date);
     await storageapi.set({saves: new_data});
     await browser.tabs.reload((await browser.tabs.getCurrent()).id);
