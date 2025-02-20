@@ -16,6 +16,7 @@
                 <span class='fake-td'><button id="clear-filter" style="display: none">Clear Filter</button></span>
                 <span class='fake-td'><input type='text' id='tag-input'></span><span class='fake-td'><button id='filter-on-tag'>Filter on tag</button></span>
                 <span class='fake-td'><button id='show-hide-urls'>Hide URLs</button></span>
+                <span class='fake-td'><button id='stats-button'>Statistics</button></span>
             </div>
             <pre id="loading-marker">Loading...</pre>
         </div>
@@ -26,6 +27,21 @@
         <div id="export" style="display: none">
             <span style="font-size: calc(1.5 * var(--base-font-size)); padding-inline-end: 1em" id="export-data-size"></span><button id='back'>Back to tab list</button><button id='copy'>Copy to clipboard</button>
             <textarea id='exported-data' readonly></textarea>
+        </div>
+        <div id="stats" style="display: none">
+            <div style="margin-bottom: 1em"><button id='back-stats'>Back to tab list</button></div>
+            <table>
+                <thead><tr><th>domain name</th><th>number of tabs</th></tr></thead>
+                <tbody id='domain-names'></tbody>
+            </table>
+            <table>
+                <thead><tr><th>tag</th><th>number of tabs</th></tr></thead>
+                <tbody id='tags-tbody'></tbody>
+            </table>
+            <table>
+                <thead><tr><th>date</th><th>number of tabs</th></tr></thead>
+                <tbody id='dates-tbody'></tbody>
+            </table>
         </div>
     </body>
 </html>

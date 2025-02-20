@@ -150,6 +150,61 @@ async function on_export_click() {
     size_report.innerText = `${saves.length} tabs, ${size} bytes = ${(size / saves.length).toFixed(0)} bytes per tab`;
     exported_data_area.innerText = string;
 }
+function stats_helper_gen_trs(map_sorted, table) {
+    for (const [key, value] of map_sorted) {
+        let td1 = document.createElement('td');
+        let td2 = document.createElement('td');
+        let tr = document.createElement('tr');
+        td1.innerText = key;
+        td2.innerText = value;
+        tr.append(td1, td2);
+        table.append(tr);
+    }
+}
+async function on_stats_click() {
+    console.time('stats');
+    document.getElementById('tablist').style.display = 'none';
+    const stats_area = document.getElementById('stats');
+    stats_area.style.display = '';
+
+    const domains_table = document.getElementById('domain-names');
+    domains_table.replaceChildren();
+    const tags_table = document.getElementById('tags-tbody');
+    tags_table.replaceChildren();
+    const dates_table = document.getElementById('dates-tbody');
+    dates_table.replaceChildren();
+    const saves = (await storageapi.get({saves: []})).saves;
+
+    let map = new Map();
+    for (const save of saves) {
+        let hostname = new URL(save.url).hostname;
+        if (map.has(hostname)) map.set(hostname, map.get(hostname) + 1);
+        else map.set(hostname, 1);
+    }
+    let map_sorted = new Map([...map.entries()].sort(([,a],[,b]) => b - a));
+    stats_helper_gen_trs(map_sorted, domains_table);
+
+    map = new Map();
+    for (const save of saves) {
+        if(save.tags) for (const tag of save.tags) {
+            if (map.has(tag)) map.set(tag, map.get(tag) + 1);
+            else map.set(tag, 1);
+        }
+    }
+    map_sorted = new Map([...map.entries()].sort(([,a],[,b]) => b - a));
+    stats_helper_gen_trs(map_sorted, tags_table);
+
+    map = new Map();
+    for (const save of saves) {
+        let date = format_date(save.date).substr(0,10);
+        if (map.has(date)) map.set(date, map.get(date) + 1);
+        else map.set(date, 1);
+    }
+    map_sorted = new Map([...map.entries()].sort(([,a],[,b]) => b - a));
+    stats_helper_gen_trs(map_sorted, dates_table);
+
+    console.timeEnd('stats');
+}
 async function on_tag_add_click(e) {
     let header_div = e.target.parentElement;
     let table = header_div.nextElementSibling;
@@ -436,6 +491,7 @@ window.addEventListener('load',async function(){
 
     document.getElementById('import-button').addEventListener('click', on_import_click);
     document.getElementById('export-button').addEventListener('click', on_export_click);
+    document.getElementById('stats-button').addEventListener('click', on_stats_click);
     document.getElementById('clear-filter').addEventListener('click', do_clear_filter);
     document.getElementById('import-add').addEventListener('click', on_import_add_click);
     document.getElementById('import-replace').addEventListener('click', on_import_replace_click);
@@ -448,6 +504,10 @@ window.addEventListener('load',async function(){
     });
     document.getElementById('back-import').addEventListener('click', () => {
         document.getElementById('import').style.display = 'none';
+        document.getElementById('tablist').style.display = '';
+    });
+    document.getElementById('back-stats').addEventListener('click', () => {
+        document.getElementById('stats').style.display = 'none';
         document.getElementById('tablist').style.display = '';
     });
     document.getElementById('filter-on-tag').addEventListener('click', () => {

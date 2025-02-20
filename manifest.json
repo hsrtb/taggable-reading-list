@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Taggable Reading List",
-    "version": "0.2.3",
+    "version": "0.3.0",
 
     "action": {
         "default_icon": "icons/save.svg",
