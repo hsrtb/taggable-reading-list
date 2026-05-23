@@ -1,13 +1,13 @@
 {
     "manifest_version": 3,
     "name": "Taggable Reading List",
-    "version": "0.3.0",
+    "version": "0.3.1",
 
     "action": {
         "default_icon": "icons/save.svg",
         "default_title": "Save Tabs"
     },
-    "permissions": ["tabs", "storage", "unlimitedStorage"],
+    "permissions": ["tabs", "storage", "unlimitedStorage", "menus"],
 
     "background": {
         "scripts": ["common.js", "background.js"]

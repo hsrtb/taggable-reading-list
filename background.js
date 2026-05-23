@@ -8,9 +8,9 @@ async function show_list() {
         return [readinglist_page, false];
     } else return [(await browser.windows.create({url: "readinglist.html"})).tabs[0], true];
 }
-async function save_tabs() {
+async function save_tabs(tab_array) {
     let start = new Date().valueOf();
-    let tab_array = await browser.tabs.query({currentWindow:true});
+    if (!tab_array) tab_array = await browser.tabs.query({currentWindow:true});
     let saves_array = (await storageapi.get({saves: []})).saves;
     let new_saves_array = [];
     let ids = [];
@@ -35,7 +35,7 @@ async function save_tabs() {
         if (tab.url == readinglist_page_url) continue;
         let save_tab = true;
         let dup = null;
-        if (tab.url == 'chrome://browser/content/blanktab.html' || tab.url == 'about:newtab') save_tab = false;
+        if (tab.url == 'chrome://browser/content/blanktab.html' || tab.url == 'about:newtab' || tab.url == 'about:home') save_tab = false;
         else if (dup = is_dup(tab, saves_array)) {
             save_tab = false;
             rejected_dupes = true;
@@ -67,8 +67,31 @@ async function save_tabs() {
         console.log('setting console_message_ready to true');
     }
 }
-browser.action.onClicked.addListener(save_tabs);
+browser.action.onClicked.addListener(() => save_tabs());
 browser.commands.onCommand.addListener(async function(command) {
     if (command == 'show-list') await show_list();
     if (command == 'add-tabs') await save_tabs();
+});
+browser.runtime.onInstalled.addListener(() => {
+    browser.menus.create({
+        id: "send-to-trl",
+        title: "Se&nd to TRL",
+        contexts: ["tab"]
+    });
+});
+async function get_target_tabs(clicked_tab) {
+    let highlighted = await browser.tabs.query({currentWindow: true, highlighted: true});
+    if (highlighted.some(t => t.id === clicked_tab.id)) return highlighted;
+    return [clicked_tab];
+}
+browser.menus.onShown.addListener(async (info, tab) => {
+    if (!info.contexts.includes("tab")) return;
+    let targets = await get_target_tabs(tab);
+    let title = targets.length === 1 ? "Se&nd to TRL" : `Se&nd ${targets.length} Tabs to TRL`;
+    await browser.menus.update("send-to-trl", {title});
+    browser.menus.refresh();
+});
+browser.menus.onClicked.addListener(async (info, tab) => {
+    if (info.menuItemId !== "send-to-trl") return;
+    await save_tabs(await get_target_tabs(tab));
 });
